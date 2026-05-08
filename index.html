@@ -1,0 +1,1219 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>UGC情绪看板</title><script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0d14;color:#e2e8f0;font-family:'PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh}
+.hd{background:linear-gradient(135deg,#1a1d2e,#0f1117);border-bottom:1px solid #2d3a5a;padding:18px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.hd h1{font-size:20px;font-weight:700;color:#e2e8f0}
+.hd .sub{font-size:12px;color:#8892b0;margin-top:3px}
+.hd-stats{display:flex;gap:24px}
+.sv{font-size:22px;font-weight:700;color:#6366f1}
+.sl{font-size:11px;color:#6b7280;margin-top:2px;text-align:right}
+.tabs{display:flex;padding:14px 28px 0;border-bottom:1px solid #1e2438}
+.tb{padding:9px 20px;border:none;background:transparent;color:#6b7280;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit}
+.tb:hover{color:#a5b4fc}.tb.active{color:#818cf8;border-bottom-color:#6366f1;font-weight:600}
+.tp{display:none;padding:22px 28px}.tp.active{display:block}
+.card{background:#1a1d2e;border-radius:12px;padding:18px 22px;border:1px solid #252a3f;margin-bottom:18px}
+.ct{font-size:13px;font-weight:600;color:#a5b4fc;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row{display:flex;gap:18px}.c2{flex:2;min-width:0}.c1{flex:1;min-width:0}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{padding:4px 11px;border-radius:14px;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.pill.pos{background:rgba(74,222,128,.12);color:#4ade80;border-color:rgba(74,222,128,.25)}
+.pill.neg{background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.25)}
+.pill.core{background:rgba(251,191,36,.15);color:#fbbf24;border-color:rgba(251,191,36,.35);font-weight:600}
+.pill.off{opacity:.28}
+.t4tab{padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;border:1.5px solid #2d3a5a;background:#252a3f;color:#8892b0;transition:all .15s;font-family:inherit}
+.t4tab.on{color:#fff;border-color:transparent;font-weight:600}
+.pact-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.pact{padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;background:#252a3f;color:#8892b0;border:1px solid #2d3a5a}
+.pact:hover{color:#a5b4fc;border-color:#6366f1}
+.metrics{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.mc{flex:1;min-width:140px;background:#252a3f;border-radius:10px;padding:14px 18px;border:1px solid #2d3a5a}
+.mv{font-size:26px;font-weight:700;color:#fbbf24}.ml{font-size:11px;color:#6b7280;margin-top:3px}.ms{font-size:11px;color:#4ade80;margin-top:2px}
+.note-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.note-card{background:#252a3f;border-radius:8px;padding:10px 14px;border:1px solid #2d3a5a;display:flex;gap:10px;align-items:flex-start}
+.ni{width:44px;height:44px;border-radius:6px;object-fit:cover;background:#1a1d2e;flex-shrink:0}
+.nb{flex:1;min-width:0}
+.nt{font-size:12px;color:#cbd5e1;line-height:1.5;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nm{display:flex;gap:10px;font-size:11px;color:#6b7280}
+.ne{color:#818cf8}.nk{color:#fbbf24;text-decoration:none}.nk:hover{text-decoration:underline}
+.sbadge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(249,115,22,.1));border:1px solid rgba(251,191,36,.3);border-radius:16px;padding:3px 12px;font-size:11px;color:#fbbf24}
+.mode-toggle{display:flex;border:1px solid #2d3a5a;border-radius:8px;overflow:hidden;width:fit-content}
+.mt-btn{padding:5px 14px;font-size:12px;cursor:pointer;background:#252a3f;color:#6b7280;border:none;font-family:inherit;transition:all .15s}
+.mt-btn.active{background:#6366f1;color:#fff}
+.brand-chip{padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;border:2px solid #2d3a5a;background:#252a3f;color:#8892b0;transition:all .15s}
+.brand-chip.on{color:#fff;border-color:transparent}
+@media(max-width:768px){
+  .hd{padding:12px 16px 10px;flex-direction:column;align-items:flex-start;gap:8px}
+  .hd h1{font-size:16px}
+  .hd-stats{gap:16px}
+  .sv{font-size:18px}
+  .tabs{padding:10px 12px 0;gap:2px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tb{padding:7px 14px;font-size:13px}
+  .tp{padding:14px 12px}
+  .tp.active{display:block}
+  .row{flex-direction:column!important;gap:12px}
+  .c2,.c1{flex:none!important;width:100%!important}
+  .card{padding:12px 14px;border-radius:10px;margin-bottom:12px}
+  .metrics{gap:8px}
+  .mc{min-width:calc(50% - 4px);padding:10px 12px}
+  .mv{font-size:20px}
+  .note-card{padding:8px 10px;gap:8px}
+  .ni{width:36px;height:36px}
+  .nt{font-size:11px;-webkit-line-clamp:3}
+  .pills{gap:4px}
+  .pill{padding:3px 9px;font-size:11px}
+  .t4tab{padding:5px 12px;font-size:12px}
+  .pact-row{gap:6px}
+  .sbadge{font-size:10px;padding:2px 9px}
+  .ct{font-size:12px;margin-bottom:10px}
+}
+@media(max-width:480px){
+  .hd h1{font-size:14px}
+  .hd-stats{gap:12px}
+  .sv{font-size:16px}
+  .mc{min-width:calc(50% - 4px)}
+  .tb{padding:6px 10px;font-size:12px}
+}
+</style></head><body><div class="hd"><div><h1>🔥 UGC情绪看板</h1><div class="sub">COSTA·G7 COFFEE·M Stand·MANNER COFFEE·Nespresso·三顿半·古茗·幸运咖·库迪咖啡·摩可纳·星巴克·永璞·瑞幸咖啡·皮爷咖啡·肯德基·雀巢·雀巢咖啡·麦当劳&nbsp;|&nbsp; ~ &nbsp;|&nbsp;规则引擎 v4</div></div><div class="hd-stats"><div><div class="sv" id="s-total">-</div><div class="sl">有效打标笔记</div></div><div><div class="sv" id="s-exp">-</div><div class="sl">累计曝光量</div></div><div><div class="sv" id="s-surprise">-</div><div class="sl">惊喜曝光SOV</div></div><div><div class="sv" id="s-pos">-</div><div class="sl">核心情绪总SOV</div></div></div></div><div class="tabs"><button class="tb active" onclick="go('t1',this)">📊 情绪分布</button><button class="tb" onclick="go('t2',this)">⏱ 情绪 Over Time</button><button class="tb" onclick="go('t3',this)">🏪 竞品对比</button><button class="tb" onclick="go('t4',this)">✨ 核心情绪深挖</button><button class="tb" onclick="go('t6',this)">🔧 功能性属性</button><button class="tb" onclick="go('t7',this)">🩺 品牌诊断</button><button class="tb" onclick="go('t8',this)">📈 属性趋势</button></div><div id="t1" class="tp active"><div class="row" style="margin-bottom:0"><div class="c1"><div class="card"><div class="ct">情绪排行（曝光SOV%）</div><div id="t1barExp" style="height:500px"></div></div></div><div class="c1"><div class="card"><div class="ct">情绪排行（笔记条数）</div><div id="t1barCnt" style="height:500px"></div></div></div></div><div class="card"><div class="ct">月度笔记量 & 曝光趋势</div><div id="t1week" style="height:260px"></div></div></div><div id="t2" class="tp"><div class="card" style="margin-bottom:14px"><div class="ct">选择要展示的情绪 <span style="color:#6b7280;font-size:11px;font-weight:400">（可多选，上限8个）</span></div><div class="pact-row"><button class="pact" onclick="t2Preset('core')" style="color:#fbbf24;border-color:rgba(251,191,36,.4)">🎯 核心情绪</button><button class="pact" onclick="t2Preset('surprise')">仅惊喜</button><button class="pact" onclick="t2Preset('top5pos')">Top5正面</button><button class="pact" onclick="t2Preset('top5neg')">Top5负面</button><button class="pact" onclick="t2Preset('all')">Top8</button><span style="font-size:11px;color:#6b7280;margin-left:4px">已选：<span id="t2count" style="color:#818cf8">0</span>/8</span></div><div class="pills" id="t2pills"></div></div><div class="card"><div class="ct" style="justify-content:space-between"><span>各情绪趋势（月维度）</span><div class="mode-toggle"><button class="mt-btn" id="modeCount" onclick="setMode('count')">笔记量</button><button class="mt-btn active" id="modeRate" onclick="setMode('rate')">曝光SOV%</button><button class="mt-btn" id="modeExp" onclick="setMode('exp')">曝光M</button></div></div><div id="t2line" style="height:360px"></div></div><div class="card"><div class="ct">全情绪 × 周次 热力图（占比 %）</div><div id="t2heat" style="height:440px"></div></div></div>
+<div id="t3" class="tp">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px" id="t3chips"></div>
+  <div class="card">
+    <div class="ct">品牌 × 情绪 SOV 热力图 (%)</div>
+    <div id="t3heatmap" style="height:280px"></div>
+  </div>
+  <div class="card">
+    <div class="ct">情绪 TGI 品牌对比（行业=100）</div>
+    <div id="t3tgi" style="height:320px"></div>
+  </div>
+</div><div id="t4" class="tp"><div id="t4tabs" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div><div class="ct" id="t4title" style="font-size:16px;margin-bottom:8px"></div><div id="t4def" style="font-size:12px;color:#8892b0;margin-bottom:14px;line-height:1.6;background:#252a3f;border-radius:8px;padding:10px 14px;border-left:3px solid #475569"></div><div class="metrics" id="t4metrics"></div><div class="row" style="align-items:stretch"><div class="c2"><div class="card" style="height:100%"><div class="ct">曝光量(M) & 曝光SOV% over time</div><div id="t4combo" style="height:380px"></div></div></div><div class="c1"><div class="card" style="height:100%;display:flex;flex-direction:column"><div class="ct">📌 代表笔记 Top5（按曝光）</div><div class="note-list" id="t4notes" style="flex:1;overflow-y:auto"></div></div></div></div></div><div id="t5" class="tp"><div style="color:#6b7280;font-size:11px;margin-bottom:12px;padding:8px 12px;background:rgba(99,102,241,.08);border-radius:6px;border-left:3px solid #6366f1">⚡ 基于品牌一方高转化笔记（可归因成交金额加权）· 情绪与功能属性均按成交金额排序</div><div class="metrics" id="t5metrics"></div><div class="row" style="margin-bottom:0"><div class="c1"><div class="card"><div class="ct">情绪 × 成交金额 Ranking（总量）</div><div id="t5barExp" style="height:460px"></div></div></div><div class="c1"><div class="card"><div class="ct">情绪 × 成交金额 Ranking（单篇均值，≥2篇）<span style="font-size:10px;color:#6b7280;font-weight:400;margin-left:6px">反映转化效率</span></div><div id="t5barCnt" style="height:460px"></div></div></div></div><div class="card"><div class="ct">高转化情绪 vs 全量情绪 SOV 差值（pp）<span style="font-size:11px;color:#6b7280;font-weight:400;margin-left:8px">绿色=高转化更突出，红色=全量更突出</span></div><div id="t5diff" style="height:300px"></div></div><div class="row" style="margin-bottom:0"><div class="c1"><div class="card"><div class="ct">功能属性 × 成交金额 Ranking（总量）</div><div id="t5attrBar" style="height:420px"></div></div></div><div class="c1"><div class="card"><div class="ct">功能属性 × 成交金额 Ranking（单篇均值，≥2篇）<span style="font-size:10px;color:#6b7280;font-weight:400;margin-left:6px">反映属性转化效率</span></div><div id="t5attrAvg" style="height:420px"></div></div></div></div></div><div id="t6" class="tp"><div class="card"><div class="ct">功能性属性命中率（笔记占比 %）<span style="color:#6b7280;font-size:11px;font-weight:400;margin-left:8px">同一笔记可命中多个属性 · 点击属性查看定义和代表笔记</span></div><div style="display:flex;gap:16px;align-items:flex-start"><div style="flex:1;min-width:0"><div id="t6bar" style="height:480px"></div></div><div id="t6detail" style="display:none;width:340px;flex-shrink:0;background:rgba(255,255,255,0.04);border-radius:8px;padding:14px;font-size:12px;color:#8892b0;max-height:480px;overflow-y:auto"><div style="color:#4b5563;font-size:12px;text-align:center;padding:40px 0">← 点击左侧属性查看详情</div></div></div></div><div class="row"><div class="c2"><div class="card"><div class="ct">功能性属性 × 情绪 分布（条数热力图）</div><div id="t6heat" style="height:420px"></div></div></div><div class="c1"><div class="card"><div class="ct">Top属性 Over Time（曝光SOV%）</div><div id="t6line" style="height:420px"></div></div></div></div></div><div id="t7" class="tp">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <span style="font-size:12px;color:#8892b0">视角：</span>
+    <button id="t7modeEmo" style="padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid #2d3a5a;background:#1a2035;color:#8892b0;transition:all .15s;">😊 Top5 情绪</button>
+    <button id="t7modeFunc" style="padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid #2d3a5a;background:#1a2035;color:#8892b0;transition:all .15s;">🔧 Top5 功能属性</button>
+  </div>
+  <div style="display:flex;gap:16px;min-height:440px">
+    <div style="width:190px;flex-shrink:0">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">品牌选择</div>
+      <div id="t7brandlist"></div>
+      <div style="font-size:10px;color:#4b5563;margin-top:8px">最多选4个叠加对比</div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div class="card" style="flex:1;min-width:260px">
+          <div class="ct" id="t7radartitle">品牌雷达图</div>
+          <div id="t7radar" style="height:360px"></div>
+        </div>
+        <div class="card" style="flex:1;min-width:260px">
+          <div class="ct" id="t7tgititle">TGI 浓度（行业=100）</div>
+          <div id="t7tgi" style="height:360px"></div>
+          <div id="t7tgitip" style="display:none;margin-top:8px;padding:8px 12px;border-left:3px solid #475569;font-size:11px;color:#6b7280">
+            <b style="color:#e2e8f0">TGI读法：</b>绿色 &gt;120 = 差异化优势；红色 &lt;80 = 内容缺口
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div id="t8" class="tp">
+  <div class="card">
+    <div class="ct">Brand 周趋势对比</div>
+    <div style="font-size:11px;color:#6b7280;margin-bottom:12px">选择视角与维度，查看各品牌周度曝光 SOV 变化趋势</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <span style="font-size:12px;color:#8892b0">视角：</span>
+      <button id="t8modeEmo" style="padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid #2d3a5a;background:#1a2035;color:#8892b0;transition:all .15s;">😊 情绪</button>
+      <button id="t8modeFunc" style="padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid #2d3a5a;background:#1a2035;color:#8892b0;transition:all .15s;">🔧 功能属性</button>
+      <span style="color:#2d3a5a;margin:0 4px">|</span>
+      <span id="t8dimlabel" style="font-size:12px;color:#8892b0">选情绪：</span>
+      <select id="t8dimsel" style="background:#1a2035;border:1px solid #2d3a5a;color:#e2e8f0;padding:5px 10px;border-radius:6px;font-size:12px;min-width:140px"></select>
+      <span style="color:#2d3a5a;margin:0 4px">|</span>
+      <span style="font-size:12px;color:#8892b0">时间：</span>
+      <select id="t8rangesel" style="background:#1a2035;border:1px solid #2d3a5a;color:#e2e8f0;padding:5px 10px;border-radius:6px;font-size:12px">
+        <option value="8">近8周</option>
+        <option value="12" selected>近12周</option>
+        <option value="16">近16周</option>
+        <option value="all">全部</option>
+      </select>
+    </div>
+    <div id="t8chips" style="margin-bottom:14px"></div>
+    <div id="t8chart" style="height:380px"></div>
+  </div>
+</div><script>window.__D={"meta":{"title":"UGC情绪看板","subtitle":"COSTA·G7 COFFEE·M Stand·MANNER COFFEE·Nespresso·三顿半·古茗·幸运咖·库迪咖啡·摩可纳·星巴克·永璞·瑞幸咖啡·皮爷咖啡·肯德基·雀巢·雀巢咖啡·麦当劳","total_notes":4598,"total_exposure_m":0.0,"weeks":[""],"brands":["COSTA","G7 COFFEE","M Stand","MANNER COFFEE","Nespresso","三顿半","古茗","幸运咖","库迪咖啡","摩可纳","星巴克","永璞","瑞幸咖啡","皮爷咖啡","肯德基","雀巢","雀巢咖啡","麦当劳"],"week_range":" ~ ","positive_emotions":["惊喜","狂喜","愉悦","好感","迷恋感","感激","逗趣感","期待感","探秘感","放松感","急迫感","崇拜感","欣赏感","认同感","信赖感","成就感","庆幸感","启迪感","骄傲","激励感","信念感","被支持感","放心感","羡慕感","畅爽","感动"],"negative_emotions":["失望","生气","烦躁","反感","遗憾","怀疑感","失落","焦虑感","担心感","纠结感","困惑感","无奈","委屈","难过","倦怠感","无聊感","羞耻感","尴尬","同情感","挫败感","不甘","嫌恶"],"weighting":"exposure"},"overview":{"emotion_dist":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0,"怀旧感":0.0,"期待感":0.0,"挫败感":0.0,"共情感":0.0,"欣赏感":0.0,"狂喜":0.0,"困惑感":0.0,"满足感":0.0,"急迫感":0.0,"庆幸感":0.0,"依恋感":0.0,"小确幸":0.0,"遗憾":0.0,"迷恋感":0.0,"成就感":0.0,"认同感":0.0,"肆意感":0.0,"仪式感":0.0},"emotion_counts":{"愉悦":807,"失望":617,"惊喜":406,"分享欲":350,"逗趣感":273,"畅爽":205,"安心感":161,"怀疑感":138,"探秘感":127,"欣赏感":112,"感激":105,"狂喜":102,"遗憾":101,"成就感":81,"无奈":70,"共情感":58,"纠结感":58,"怀旧感":53,"期待感":52,"认同感":48,"松弛感":48,"庆幸感":46,"生气":46,"仪式感":42,"激励感":38,"反感":36,"软萌感":35,"迷恋感":34,"失落":26,"掌控感":25},"polarity_dist":{"负面":0.0,"正面":0.0,"混合":0.0},"top_emotions":["失望","愉悦","分享欲","掌控感","畅爽","无奈","感激","探秘感","逗趣感","惊喜","安心感","活力感","怀旧感","期待感","挫败感","共情感","欣赏感","狂喜","困惑感","满足感","急迫感","庆幸感","依恋感","小确幸","遗憾","迷恋感","成就感","认同感","肆意感","仪式感"],"top12":["失望","愉悦","分享欲","掌控感","畅爽","无奈","感激","探秘感","逗趣感","惊喜","安心感","活力感"]},"week_emotion_exp":{"":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0,"怀旧感":0.0,"期待感":0.0,"挫败感":0.0,"共情感":0.0,"欣赏感":0.0,"狂喜":0.0,"困惑感":0.0,"满足感":0.0,"急迫感":0.0,"庆幸感":0.0,"依恋感":0.0,"小确幸":0.0,"遗憾":0.0,"迷恋感":0.0,"成就感":0.0,"认同感":0.0,"肆意感":0.0,"仪式感":0.0,"不甘":0.0,"纠结感":0.0,"烦躁":0.0,"软萌感":0.0,"焦虑感":0.0,"生气":0.0,"松弛感":0.0,"怀疑感":0.0,"归属感":0.0,"反感":0.0,"崇拜感":0.0,"激励感":0.0,"失落":0.0,"精致感":0.0,"委屈":0.0,"负罪感":0.0,"倦怠感":0.0,"放松感":0.0,"微醺感":0.0,"信赖感":0.0,"被支持感":0.0,"救赎感":0.0,"骄傲":0.0,"治愈感":0.0,"感动":0.0,"优越感":0.0,"心动感":0.0,"无聊感":0.0,"成长感":0.0,"温暖/关爱感":0.0,"担心感":0.0,"自信":0.0,"自由感":0.0,"羡慕感":0.0,"感恩/感激":0.0,"启迪感":0.0}},"week_total_exp":{"":0.0},"week_emotion_cnt":{"":{"失望":617,"愉悦":807,"分享欲":350,"掌控感":25,"畅爽":205,"无奈":70,"感激":105,"探秘感":127,"逗趣感":273,"惊喜":406,"安心感":161,"活力感":15,"怀旧感":53,"期待感":52,"挫败感":10,"共情感":58,"欣赏感":112,"狂喜":102,"困惑感":13,"满足感":3,"急迫感":17,"庆幸感":46,"依恋感":12,"小确幸":11,"遗憾":101,"迷恋感":34,"成就感":81,"认同感":48,"肆意感":21,"仪式感":42,"不甘":5,"纠结感":58,"烦躁":15,"软萌感":35,"焦虑感":16,"生气":46,"松弛感":48,"怀疑感":138,"归属感":11,"反感":36,"崇拜感":25,"激励感":38,"失落":26,"精致感":2,"委屈":2,"负罪感":6,"倦怠感":12,"放松感":19,"微醺感":7,"信赖感":5,"被支持感":4,"救赎感":7,"骄傲":8,"治愈感":8,"感动":10,"优越感":6,"心动感":5,"无聊感":3,"成长感":1,"温暖/关爱感":8,"担心感":5,"自信":1,"自由感":2,"羡慕感":1,"感恩/感激":1,"启迪感":1}},"week_total_cnt":{"":4598},"emotion_over_time":{"失望":{"counts":[617],"exposure":[0.0],"rates":[0.0]},"愉悦":{"counts":[807],"exposure":[0.0],"rates":[0.0]},"分享欲":{"counts":[350],"exposure":[0.0],"rates":[0.0]},"掌控感":{"counts":[25],"exposure":[0.0],"rates":[0.0]},"畅爽":{"counts":[205],"exposure":[0.0],"rates":[0.0]},"无奈":{"counts":[70],"exposure":[0.0],"rates":[0.0]},"感激":{"counts":[105],"exposure":[0.0],"rates":[0.0]},"探秘感":{"counts":[127],"exposure":[0.0],"rates":[0.0]},"逗趣感":{"counts":[273],"exposure":[0.0],"rates":[0.0]},"惊喜":{"counts":[406],"exposure":[0.0],"rates":[0.0]},"安心感":{"counts":[161],"exposure":[0.0],"rates":[0.0]},"活力感":{"counts":[15],"exposure":[0.0],"rates":[0.0]},"怀旧感":{"counts":[53],"exposure":[0.0],"rates":[0.0]},"期待感":{"counts":[52],"exposure":[0.0],"rates":[0.0]},"挫败感":{"counts":[10],"exposure":[0.0],"rates":[0.0]},"共情感":{"counts":[58],"exposure":[0.0],"rates":[0.0]},"欣赏感":{"counts":[112],"exposure":[0.0],"rates":[0.0]},"狂喜":{"counts":[102],"exposure":[0.0],"rates":[0.0]},"困惑感":{"counts":[13],"exposure":[0.0],"rates":[0.0]},"满足感":{"counts":[3],"exposure":[0.0],"rates":[0.0]},"急迫感":{"counts":[17],"exposure":[0.0],"rates":[0.0]},"庆幸感":{"counts":[46],"exposure":[0.0],"rates":[0.0]},"依恋感":{"counts":[12],"exposure":[0.0],"rates":[0.0]},"小确幸":{"counts":[11],"exposure":[0.0],"rates":[0.0]},"遗憾":{"counts":[101],"exposure":[0.0],"rates":[0.0]},"迷恋感":{"counts":[34],"exposure":[0.0],"rates":[0.0]},"成就感":{"counts":[81],"exposure":[0.0],"rates":[0.0]},"认同感":{"counts":[48],"exposure":[0.0],"rates":[0.0]},"肆意感":{"counts":[21],"exposure":[0.0],"rates":[0.0]},"仪式感":{"counts":[42],"exposure":[0.0],"rates":[0.0]}},"brand_emotion_exp":{"COSTA":{"掌控感":0.0,"感激":0.0,"逗趣感":0.0,"安心感":0.0,"无奈":0.0,"庆幸感":0.0,"惊喜":0.0,"失望":0.0,"愉悦":0.0,"不甘":0.0,"反感":0.0,"期待感":0.0,"倦怠感":0.0,"认同感":0.0,"分享欲":0.0,"松弛感":0.0,"怀旧感":0.0,"探秘感":0.0,"微醺感":0.0,"遗憾":0.0,"失落":0.0,"活力感":0.0,"委屈":0.0,"怀疑感":0.0,"纠结感":0.0,"成就感":0.0,"欣赏感":0.0,"迷恋感":0.0,"仪式感":0.0,"困惑感":0.0,"畅爽":0.0,"共情感":0.0,"优越感":0.0,"温暖/关爱感":0.0,"感动":0.0,"救赎感":0.0,"狂喜":0.0,"焦虑感":0.0,"激励感":0.0,"治愈感":0.0,"生气":0.0,"烦躁":0.0,"软萌感":0.0,"放松感":0.0,"挫败感":0.0,"归属感":0.0},"G7 COFFEE":{"分享欲":0.0,"狂喜":0.0,"愉悦":0.0,"依恋感":0.0,"惊喜":0.0,"掌控感":0.0,"欣赏感":0.0,"仪式感":0.0,"逗趣感":0.0,"失望":0.0,"无奈":0.0,"迷恋感":0.0,"安心感":0.0,"怀疑感":0.0,"怀旧感":0.0,"归属感":0.0},"M Stand":{"愉悦":0.0,"失望":0.0,"惊喜":0.0,"安心感":0.0,"软萌感":0.0,"怀旧感":0.0,"怀疑感":0.0,"欣赏感":0.0,"遗憾":0.0,"成就感":0.0,"纠结感":0.0,"共情感":0.0,"掌控感":0.0,"无奈":0.0,"分享欲":0.0,"反感":0.0,"逗趣感":0.0,"狂喜":0.0,"期待感":0.0},"MANNER COFFEE":{"逗趣感":0.0,"欣赏感":0.0,"愉悦":0.0,"庆幸感":0.0,"惊喜":0.0,"失望":0.0,"期待感":0.0,"分享欲":0.0,"探秘感":0.0,"归属感":0.0,"激励感":0.0,"感激":0.0,"畅爽":0.0,"成就感":0.0,"狂喜":0.0,"急迫感":0.0,"负罪感":0.0,"遗憾":0.0,"困惑感":0.0,"无奈":0.0},"Nespresso":{"畅爽":0.0,"愉悦":0.0,"微醺感":0.0,"惊喜":0.0,"分享欲":0.0,"感激":0.0,"逗趣感":0.0,"失望":0.0,"怀疑感":0.0,"感动":0.0,"共情感":0.0,"欣赏感":0.0,"纠结感":0.0,"信赖感":0.0,"小确幸":0.0},"三顿半":{"惊喜":0.0,"遗憾":0.0,"安心感":0.0,"分享欲":0.0,"探秘感":0.0,"激励感":0.0,"失望":0.0,"纠结感":0.0,"逗趣感":0.0,"感激":0.0,"畅爽":0.0,"松弛感":0.0,"狂喜":0.0,"怀疑感":0.0,"愉悦":0.0,"生气":0.0,"仪式感":0.0,"共情感":0.0,"肆意感":0.0,"急迫感":0.0,"期待感":0.0},"古茗":{"畅爽":0.0,"愉悦":0.0,"分享欲":0.0,"肆意感":0.0,"焦虑感":0.0,"纠结感":0.0,"失望":0.0,"探秘感":0.0,"安心感":0.0,"怀旧感":0.0,"共情感":0.0,"逗趣感":0.0,"信赖感":0.0,"激励感":0.0,"崇拜感":0.0,"仪式感":0.0,"怀疑感":0.0,"成就感":0.0,"软萌感":0.0,"欣赏感":0.0,"庆幸感":0.0,"惊喜":0.0,"期待感":0.0,"狂喜":0.0,"放松感":0.0,"松弛感":0.0,"掌控感":0.0,"反感":0.0,"感激":0.0,"认同感":0.0,"失落":0.0,"挫败感":0.0,"无奈":0.0,"担心感":0.0,"迷恋感":0.0},"幸运咖":{"畅爽":0.0,"失望":0.0,"愉悦":0.0,"感动":0.0,"惊喜":0.0,"失落":0.0,"崇拜感":0.0,"倦怠感":0.0,"怀疑感":0.0,"生气":0.0,"期待感":0.0,"成就感":0.0,"分享欲":0.0,"共情感":0.0,"庆幸感":0.0,"温暖/关爱感":0.0,"遗憾":0.0,"逗趣感":0.0,"感激":0.0},"库迪咖啡":{"分享欲":0.0,"畅爽":0.0,"欣赏感":0.0,"愉悦":0.0,"遗憾":0.0,"失望":0.0,"迷恋感":0.0,"失落":0.0,"逗趣感":0.0,"惊喜":0.0,"小确幸":0.0,"感激":0.0,"纠结感":0.0,"软萌感":0.0,"怀旧感":0.0,"共情感":0.0,"怀疑感":0.0,"反感":0.0,"崇拜感":0.0,"期待感":0.0,"安心感":0.0,"狂喜":0.0,"掌控感":0.0,"无奈":0.0,"被支持感":0.0,"温暖/关爱感":0.0,"激励感":0.0,"认同感":0.0,"焦虑感":0.0,"放松感":0.0,"探秘感":0.0,"肆意感":0.0,"庆幸感":0.0,"生气":0.0,"成就感":0.0,"松弛感":0.0,"烦躁":0.0},"摩可纳":{"愉悦":0.0,"分享欲":0.0,"失望":0.0,"惊喜":0.0,"认同感":0.0,"畅爽":0.0,"成就感":0.0,"烦躁":0.0,"怀疑感":0.0,"狂喜":0.0,"遗憾":0.0,"纠结感":0.0,"安心感":0.0,"依恋感":0.0,"生气":0.0,"逗趣感":0.0,"担心感":0.0,"崇拜感":0.0,"无奈":0.0,"仪式感":0.0,"庆幸感":0.0,"欣赏感":0.0,"期待感":0.0,"小确幸":0.0,"微醺感":0.0,"松弛感":0.0,"精致感":0.0,"救赎感":0.0,"挫败感":0.0},"星巴克":{"愉悦":0.0,"分享欲":0.0,"无奈":0.0,"探秘感":0.0,"安心感":0.0,"逗趣感":0.0,"活力感":0.0,"共情感":0.0,"狂喜":0.0,"困惑感":0.0,"小确幸":0.0,"惊喜":0.0,"畅爽":0.0,"成就感":0.0,"仪式感":0.0,"失望":0.0,"欣赏感":0.0,"怀疑感":0.0,"激励感":0.0,"遗憾":0.0,"松弛感":0.0,"委屈":0.0,"负罪感":0.0,"怀旧感":0.0,"放松感":0.0,"庆幸感":0.0,"纠结感":0.0,"生气":0.0,"感激":0.0,"焦虑感":0.0,"急迫感":0.0,"被支持感":0.0,"迷恋感":0.0,"软萌感":0.0,"认同感":0.0,"治愈感":0.0,"掌控感":0.0,"倦怠感":0.0,"无聊感":0.0,"期待感":0.0,"烦躁":0.0,"感动":0.0,"反感":0.0,"失落":0.0,"微醺感":0.0,"崇拜感":0.0,"肆意感":0.0,"自由感":0.0,"依恋感":0.0,"归属感":0.0,"优越感":0.0,"骄傲":0.0,"担心感":0.0,"温暖/关爱感":0.0,"心动感":0.0},"永璞":{"期待感":0.0,"愉悦":0.0,"失望":0.0,"成就感":0.0,"畅爽":0.0,"分享欲":0.0,"逗趣感":0.0,"放松感":0.0,"生气":0.0,"惊喜":0.0,"遗憾":0.0,"狂喜":0.0,"迷恋感":0.0,"怀疑感":0.0,"骄傲":0.0,"认同感":0.0,"探秘感":0.0,"感激":0.0,"安心感":0.0,"心动感":0.0,"崇拜感":0.0},"瑞幸咖啡":{"分享欲":0.0,"愉悦":0.0,"无奈":0.0,"失望":0.0,"怀旧感":0.0,"挫败感":0.0,"逗趣感":0.0,"惊喜":0.0,"狂喜":0.0,"依恋感":0.0,"安心感":0.0,"掌控感":0.0,"活力感":0.0,"迷恋感":0.0,"共情感":0.0,"认同感":0.0,"困惑感":0.0,"纠结感":0.0,"烦躁":0.0,"生气":0.0,"松弛感":0.0,"归属感":0.0,"反感":0.0,"畅爽":0.0,"肆意感":0.0,"感激":0.0,"精致感":0.0,"崇拜感":0.0,"激励感":0.0,"成就感":0.0,"期待感":0.0,"庆幸感":0.0,"怀疑感":0.0,"焦虑感":0.0,"遗憾":0.0,"探秘感":0.0,"软萌感":0.0,"仪式感":0.0,"救赎感":0.0,"欣赏感":0.0,"骄傲":0.0,"小确幸":0.0,"倦怠感":0.0,"失落":0.0,"感动":0.0,"心动感":0.0,"急迫感":0.0,"成长感":0.0,"放松感":0.0,"负罪感":0.0,"不甘":0.0,"无聊感":0.0,"自信":0.0,"治愈感":0.0,"满足感":0.0,"信赖感":0.0,"羡慕感":0.0,"优越感":0.0,"微醺感":0.0,"温暖/关爱感":0.0,"启迪感":0.0,"担心感":0.0},"皮爷咖啡":{"满足感":0.0,"急迫感":0.0,"愉悦":0.0,"逗趣感":0.0,"挫败感":0.0,"畅爽":0.0,"迷恋感":0.0,"探秘感":0.0,"被支持感":0.0,"失望":0.0,"安心感":0.0,"共情感":0.0,"惊喜":0.0,"怀疑感":0.0,"遗憾":0.0,"分享欲":0.0,"欣赏感":0.0,"期待感":0.0,"狂喜":0.0,"仪式感":0.0,"无奈":0.0,"怀旧感":0.0,"小确幸":0.0,"成就感":0.0,"放松感":0.0,"优越感":0.0,"纠结感":0.0,"感恩/感激":0.0,"反感":0.0},"肯德基":{"愉悦":0.0,"探秘感":0.0,"惊喜":0.0,"欣赏感":0.0,"共情感":0.0,"狂喜":0.0,"失望":0.0,"感激":0.0,"崇拜感":0.0,"困惑感":0.0,"分享欲":0.0,"逗趣感":0.0,"激励感":0.0,"畅爽":0.0,"怀旧感":0.0,"无奈":0.0,"软萌感":0.0,"成就感":0.0,"优越感":0.0,"期待感":0.0,"怀疑感":0.0,"生气":0.0,"微醺感":0.0,"失落":0.0,"活力感":0.0,"安心感":0.0,"庆幸感":0.0,"认同感":0.0,"遗憾":0.0,"信赖感":0.0,"反感":0.0,"温暖/关爱感":0.0,"心动感":0.0,"迷恋感":0.0,"倦怠感":0.0},"雀巢":{"愉悦":0.0,"感激":0.0,"怀旧感":0.0,"分享欲":0.0,"怀疑感":0.0,"失望":0.0,"期待感":0.0,"逗趣感":0.0,"惊喜":0.0,"活力感":0.0,"纠结感":0.0,"畅爽":0.0,"无奈":0.0,"遗憾":0.0,"认同感":0.0},"雀巢咖啡":{"失望":0.0,"无奈":0.0,"愉悦":0.0,"惊喜":0.0,"成就感":0.0,"分享欲":0.0,"畅爽":0.0,"软萌感":0.0,"怀旧感":0.0,"怀疑感":0.0,"遗憾":0.0,"狂喜":0.0,"共情感":0.0,"安心感":0.0,"活力感":0.0,"掌控感":0.0,"救赎感":0.0,"逗趣感":0.0,"期待感":0.0,"感激":0.0,"生气":0.0,"放松感":0.0,"纠结感":0.0,"松弛感":0.0,"困惑感":0.0,"欣赏感":0.0,"反感":0.0,"探秘感":0.0,"挫败感":0.0,"迷恋感":0.0,"不甘":0.0,"认同感":0.0,"急迫感":0.0},"麦当劳":{"软萌感":0.0,"逗趣感":0.0,"愉悦":0.0,"怀疑感":0.0,"惊喜":0.0,"急迫感":0.0,"成就感":0.0,"分享欲":0.0,"认同感":0.0,"安心感":0.0,"生气":0.0,"庆幸感":0.0,"遗憾":0.0,"纠结感":0.0,"仪式感":0.0,"失望":0.0,"共情感":0.0,"畅爽":0.0,"狂喜":0.0,"依恋感":0.0,"无奈":0.0,"骄傲":0.0,"迷恋感":0.0,"探秘感":0.0,"倦怠感":0.0,"松弛感":0.0,"激励感":0.0}},"brand_total_exp":{"雀巢咖啡":0.0,"肯德基":0.0,"星巴克":0.0,"瑞幸咖啡":0.0,"COSTA":0.0,"古茗":0.0,"摩可纳":0.0,"三顿半":0.0,"库迪咖啡":0.0,"幸运咖":0.0,"永璞":0.0,"皮爷咖啡":0.0,"Nespresso":0.0,"麦当劳":0.0,"MANNER COFFEE":0.0,"M Stand":0.0,"G7 COFFEE":0.0,"雀巢":0.0},"sov_matrix":{"COSTA":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"G7 COFFEE":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"M Stand":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"MANNER COFFEE":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"Nespresso":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"三顿半":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"古茗":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"幸运咖":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"库迪咖啡":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"摩可纳":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"星巴克":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"永璞":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"瑞幸咖啡":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"皮爷咖啡":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"肯德基":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"雀巢":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"雀巢咖啡":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0},"麦当劳":{"失望":0.0,"愉悦":0.0,"分享欲":0.0,"掌控感":0.0,"畅爽":0.0,"无奈":0.0,"感激":0.0,"探秘感":0.0,"逗趣感":0.0,"惊喜":0.0,"安心感":0.0,"活力感":0.0}},"tgi_matrix":{"COSTA":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"G7 COFFEE":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"M Stand":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"MANNER COFFEE":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"Nespresso":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"三顿半":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"古茗":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"幸运咖":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"库迪咖啡":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"摩可纳":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"星巴克":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"永璞":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"瑞幸咖啡":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"皮爷咖啡":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"肯德基":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"雀巢":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"雀巢咖啡":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0},"麦当劳":{"失望":0,"愉悦":0,"分享欲":0,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0,"安心感":0,"活力感":0}},"brand_week_emotion_exp":{"COSTA":{"":{"掌控感":0.0,"感激":0.0,"逗趣感":0.0,"安心感":0.0,"无奈":0.0,"庆幸感":0.0,"惊喜":0.0,"失望":0.0,"愉悦":0.0,"不甘":0.0,"反感":0.0,"期待感":0.0,"倦怠感":0.0,"认同感":0.0,"分享欲":0.0,"松弛感":0.0,"怀旧感":0.0,"探秘感":0.0,"微醺感":0.0,"遗憾":0.0,"失落":0.0,"活力感":0.0,"委屈":0.0,"怀疑感":0.0,"纠结感":0.0,"成就感":0.0,"欣赏感":0.0,"迷恋感":0.0,"仪式感":0.0,"困惑感":0.0,"畅爽":0.0,"共情感":0.0,"优越感":0.0,"温暖/关爱感":0.0,"感动":0.0,"救赎感":0.0,"狂喜":0.0,"焦虑感":0.0,"激励感":0.0,"治愈感":0.0,"生气":0.0,"烦躁":0.0,"软萌感":0.0,"放松感":0.0,"挫败感":0.0,"归属感":0.0}},"G7 COFFEE":{"":{"分享欲":0.0,"狂喜":0.0,"愉悦":0.0,"依恋感":0.0,"惊喜":0.0,"掌控感":0.0,"欣赏感":0.0,"仪式感":0.0,"逗趣感":0.0,"失望":0.0,"无奈":0.0,"迷恋感":0.0,"安心感":0.0,"怀疑感":0.0,"怀旧感":0.0,"归属感":0.0}},"M Stand":{"":{"愉悦":0.0,"失望":0.0,"惊喜":0.0,"安心感":0.0,"软萌感":0.0,"怀旧感":0.0,"怀疑感":0.0,"欣赏感":0.0,"遗憾":0.0,"成就感":0.0,"纠结感":0.0,"共情感":0.0,"掌控感":0.0,"无奈":0.0,"分享欲":0.0,"反感":0.0,"逗趣感":0.0,"狂喜":0.0,"期待感":0.0}},"MANNER COFFEE":{"":{"逗趣感":0.0,"欣赏感":0.0,"愉悦":0.0,"庆幸感":0.0,"惊喜":0.0,"失望":0.0,"期待感":0.0,"分享欲":0.0,"探秘感":0.0,"归属感":0.0,"激励感":0.0,"感激":0.0,"畅爽":0.0,"成就感":0.0,"狂喜":0.0,"急迫感":0.0,"负罪感":0.0,"遗憾":0.0,"困惑感":0.0,"无奈":0.0}},"Nespresso":{"":{"畅爽":0.0,"愉悦":0.0,"微醺感":0.0,"惊喜":0.0,"分享欲":0.0,"感激":0.0,"逗趣感":0.0,"失望":0.0,"怀疑感":0.0,"感动":0.0,"共情感":0.0,"欣赏感":0.0,"纠结感":0.0,"信赖感":0.0,"小确幸":0.0}},"三顿半":{"":{"惊喜":0.0,"遗憾":0.0,"安心感":0.0,"分享欲":0.0,"探秘感":0.0,"激励感":0.0,"失望":0.0,"纠结感":0.0,"逗趣感":0.0,"感激":0.0,"畅爽":0.0,"松弛感":0.0,"狂喜":0.0,"怀疑感":0.0,"愉悦":0.0,"生气":0.0,"仪式感":0.0,"共情感":0.0,"肆意感":0.0,"急迫感":0.0,"期待感":0.0}},"古茗":{"":{"畅爽":0.0,"愉悦":0.0,"分享欲":0.0,"肆意感":0.0,"焦虑感":0.0,"纠结感":0.0,"失望":0.0,"探秘感":0.0,"安心感":0.0,"怀旧感":0.0,"共情感":0.0,"逗趣感":0.0,"信赖感":0.0,"激励感":0.0,"崇拜感":0.0,"仪式感":0.0,"怀疑感":0.0,"成就感":0.0,"软萌感":0.0,"欣赏感":0.0,"庆幸感":0.0,"惊喜":0.0,"期待感":0.0,"狂喜":0.0,"放松感":0.0,"松弛感":0.0,"掌控感":0.0,"反感":0.0,"感激":0.0,"认同感":0.0,"失落":0.0,"挫败感":0.0,"无奈":0.0,"担心感":0.0,"迷恋感":0.0}},"幸运咖":{"":{"畅爽":0.0,"失望":0.0,"愉悦":0.0,"感动":0.0,"惊喜":0.0,"失落":0.0,"崇拜感":0.0,"倦怠感":0.0,"怀疑感":0.0,"生气":0.0,"期待感":0.0,"成就感":0.0,"分享欲":0.0,"共情感":0.0,"庆幸感":0.0,"温暖/关爱感":0.0,"遗憾":0.0,"逗趣感":0.0,"感激":0.0}},"库迪咖啡":{"":{"分享欲":0.0,"畅爽":0.0,"欣赏感":0.0,"愉悦":0.0,"遗憾":0.0,"失望":0.0,"迷恋感":0.0,"失落":0.0,"逗趣感":0.0,"惊喜":0.0,"小确幸":0.0,"感激":0.0,"纠结感":0.0,"软萌感":0.0,"怀旧感":0.0,"共情感":0.0,"怀疑感":0.0,"反感":0.0,"崇拜感":0.0,"期待感":0.0,"安心感":0.0,"狂喜":0.0,"掌控感":0.0,"无奈":0.0,"被支持感":0.0,"温暖/关爱感":0.0,"激励感":0.0,"认同感":0.0,"焦虑感":0.0,"放松感":0.0,"探秘感":0.0,"肆意感":0.0,"庆幸感":0.0,"生气":0.0,"成就感":0.0,"松弛感":0.0,"烦躁":0.0}},"摩可纳":{"":{"愉悦":0.0,"分享欲":0.0,"失望":0.0,"惊喜":0.0,"认同感":0.0,"畅爽":0.0,"成就感":0.0,"烦躁":0.0,"怀疑感":0.0,"狂喜":0.0,"遗憾":0.0,"纠结感":0.0,"安心感":0.0,"依恋感":0.0,"生气":0.0,"逗趣感":0.0,"担心感":0.0,"崇拜感":0.0,"无奈":0.0,"仪式感":0.0,"庆幸感":0.0,"欣赏感":0.0,"期待感":0.0,"小确幸":0.0,"微醺感":0.0,"松弛感":0.0,"精致感":0.0,"救赎感":0.0,"挫败感":0.0}},"星巴克":{"":{"愉悦":0.0,"分享欲":0.0,"无奈":0.0,"探秘感":0.0,"安心感":0.0,"逗趣感":0.0,"活力感":0.0,"共情感":0.0,"狂喜":0.0,"困惑感":0.0,"小确幸":0.0,"惊喜":0.0,"畅爽":0.0,"成就感":0.0,"仪式感":0.0,"失望":0.0,"欣赏感":0.0,"怀疑感":0.0,"激励感":0.0,"遗憾":0.0,"松弛感":0.0,"委屈":0.0,"负罪感":0.0,"怀旧感":0.0,"放松感":0.0,"庆幸感":0.0,"纠结感":0.0,"生气":0.0,"感激":0.0,"焦虑感":0.0,"急迫感":0.0,"被支持感":0.0,"迷恋感":0.0,"软萌感":0.0,"认同感":0.0,"治愈感":0.0,"掌控感":0.0,"倦怠感":0.0,"无聊感":0.0,"期待感":0.0,"烦躁":0.0,"感动":0.0,"反感":0.0,"失落":0.0,"微醺感":0.0,"崇拜感":0.0,"肆意感":0.0,"自由感":0.0,"依恋感":0.0,"归属感":0.0,"优越感":0.0,"骄傲":0.0,"担心感":0.0,"温暖/关爱感":0.0,"心动感":0.0}},"永璞":{"":{"期待感":0.0,"愉悦":0.0,"失望":0.0,"成就感":0.0,"畅爽":0.0,"分享欲":0.0,"逗趣感":0.0,"放松感":0.0,"生气":0.0,"惊喜":0.0,"遗憾":0.0,"狂喜":0.0,"迷恋感":0.0,"怀疑感":0.0,"骄傲":0.0,"认同感":0.0,"探秘感":0.0,"感激":0.0,"安心感":0.0,"心动感":0.0,"崇拜感":0.0}},"瑞幸咖啡":{"":{"分享欲":0.0,"愉悦":0.0,"无奈":0.0,"失望":0.0,"怀旧感":0.0,"挫败感":0.0,"逗趣感":0.0,"惊喜":0.0,"狂喜":0.0,"依恋感":0.0,"安心感":0.0,"掌控感":0.0,"活力感":0.0,"迷恋感":0.0,"共情感":0.0,"认同感":0.0,"困惑感":0.0,"纠结感":0.0,"烦躁":0.0,"生气":0.0,"松弛感":0.0,"归属感":0.0,"反感":0.0,"畅爽":0.0,"肆意感":0.0,"感激":0.0,"精致感":0.0,"崇拜感":0.0,"激励感":0.0,"成就感":0.0,"期待感":0.0,"庆幸感":0.0,"怀疑感":0.0,"焦虑感":0.0,"遗憾":0.0,"探秘感":0.0,"软萌感":0.0,"仪式感":0.0,"救赎感":0.0,"欣赏感":0.0,"骄傲":0.0,"小确幸":0.0,"倦怠感":0.0,"失落":0.0,"感动":0.0,"心动感":0.0,"急迫感":0.0,"成长感":0.0,"放松感":0.0,"负罪感":0.0,"不甘":0.0,"无聊感":0.0,"自信":0.0,"治愈感":0.0,"满足感":0.0,"信赖感":0.0,"羡慕感":0.0,"优越感":0.0,"微醺感":0.0,"温暖/关爱感":0.0,"启迪感":0.0,"担心感":0.0}},"皮爷咖啡":{"":{"满足感":0.0,"急迫感":0.0,"愉悦":0.0,"逗趣感":0.0,"挫败感":0.0,"畅爽":0.0,"迷恋感":0.0,"探秘感":0.0,"被支持感":0.0,"失望":0.0,"安心感":0.0,"共情感":0.0,"惊喜":0.0,"怀疑感":0.0,"遗憾":0.0,"分享欲":0.0,"欣赏感":0.0,"期待感":0.0,"狂喜":0.0,"仪式感":0.0,"无奈":0.0,"怀旧感":0.0,"小确幸":0.0,"成就感":0.0,"放松感":0.0,"优越感":0.0,"纠结感":0.0,"感恩/感激":0.0,"反感":0.0}},"肯德基":{"":{"愉悦":0.0,"探秘感":0.0,"惊喜":0.0,"欣赏感":0.0,"共情感":0.0,"狂喜":0.0,"失望":0.0,"感激":0.0,"崇拜感":0.0,"困惑感":0.0,"分享欲":0.0,"逗趣感":0.0,"激励感":0.0,"畅爽":0.0,"怀旧感":0.0,"无奈":0.0,"软萌感":0.0,"成就感":0.0,"优越感":0.0,"期待感":0.0,"怀疑感":0.0,"生气":0.0,"微醺感":0.0,"失落":0.0,"活力感":0.0,"安心感":0.0,"庆幸感":0.0,"认同感":0.0,"遗憾":0.0,"信赖感":0.0,"反感":0.0,"温暖/关爱感":0.0,"心动感":0.0,"迷恋感":0.0,"倦怠感":0.0}},"雀巢":{"":{"愉悦":0.0,"感激":0.0,"怀旧感":0.0,"分享欲":0.0,"怀疑感":0.0,"失望":0.0,"期待感":0.0,"逗趣感":0.0,"惊喜":0.0,"活力感":0.0,"纠结感":0.0,"畅爽":0.0,"无奈":0.0,"遗憾":0.0,"认同感":0.0}},"雀巢咖啡":{"":{"失望":0.0,"无奈":0.0,"愉悦":0.0,"惊喜":0.0,"成就感":0.0,"分享欲":0.0,"畅爽":0.0,"软萌感":0.0,"怀旧感":0.0,"怀疑感":0.0,"遗憾":0.0,"狂喜":0.0,"共情感":0.0,"安心感":0.0,"活力感":0.0,"掌控感":0.0,"救赎感":0.0,"逗趣感":0.0,"期待感":0.0,"感激":0.0,"生气":0.0,"放松感":0.0,"纠结感":0.0,"松弛感":0.0,"困惑感":0.0,"欣赏感":0.0,"反感":0.0,"探秘感":0.0,"挫败感":0.0,"迷恋感":0.0,"不甘":0.0,"认同感":0.0,"急迫感":0.0}},"麦当劳":{"":{"软萌感":0.0,"逗趣感":0.0,"愉悦":0.0,"怀疑感":0.0,"惊喜":0.0,"急迫感":0.0,"成就感":0.0,"分享欲":0.0,"认同感":0.0,"安心感":0.0,"生气":0.0,"庆幸感":0.0,"遗憾":0.0,"纠结感":0.0,"仪式感":0.0,"失望":0.0,"共情感":0.0,"畅爽":0.0,"狂喜":0.0,"依恋感":0.0,"无奈":0.0,"骄傲":0.0,"迷恋感":0.0,"探秘感":0.0,"倦怠感":0.0,"松弛感":0.0,"激励感":0.0}}},"brand_week_total_exp":{"COSTA":{"":0.0},"G7 COFFEE":{"":0.0},"M Stand":{"":0.0},"MANNER COFFEE":{"":0.0},"Nespresso":{"":0.0},"三顿半":{"":0.0},"古茗":{"":0.0},"幸运咖":{"":0.0},"库迪咖啡":{"":0.0},"摩可纳":{"":0.0},"星巴克":{"":0.0},"永璞":{"":0.0},"瑞幸咖啡":{"":0.0},"皮爷咖啡":{"":0.0},"肯德基":{"":0.0},"雀巢":{"":0.0},"雀巢咖啡":{"":0.0},"麦当劳":{"":0.0}},"surprise_notes":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题： 正文：库迪的宝藏芒芒生椰拿铁很好喝，今天又买了#比想象中好喝[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含惊喜/宝藏发现/品牌认知颠覆表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸黄油小熊 正文：我的天瑞幸好会，这个小熊真的可爱💥了#瑞幸黄油小熊[话题]# #瑞幸咖啡[话题]# #黄油小熊[话题]# #带上瑞幸黄油小熊过十一[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.72,"reasoning":"含震惊/沦陷/没想到等惊喜感叹词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：库迪咖啡惊喜盒子掉落 正文：还得是迪子，嘿嘿。\n#库迪新春当鸿品味心动[话题]# #库迪心动粉芭乐系列上新[话题]# #库迪联名徐悲鸿美术馆[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含惊喜字面词（正面语境）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：万万没想到莓莓最好喝 正文：喝了几天的软冰，才发现莓莓是最棒的#星巴克软雪星冰乐[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"没想到（正面语境）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸一元咖啡 正文：喝上了，这也太卷了#咖啡[话题]# #瑞幸[话题]# #价格[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.72,"reasoning":"含震惊/沦陷/没想到等惊喜感叹词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"core_notes":{"畅爽":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：星巴克前所未有超级好喝的新品！焦糖爆米花！ 正文：谁懂这一杯的含金量！！！\n咖啡界独一份，冰力震摇释放浓郁的咖啡香气以及层次丰富的口感，zui适合夏日的冰震浓缩咖啡，它又上新啦！\n星巴克再造惊喜，大胆风味焦糖爆米花风味冰震浓缩，真的好喝到失语……放假出去玩就想点这杯！喝一大口感觉太满足啦！\n\t\n🍿️焦糖爆米花风味冰震浓缩\n浓郁的焦糖爆米花味，玉米奶油甜香完全不会腻！\n透过浓缩咖啡冰力震摇出的轻盈泡沫，散发出混合着浓郁奶油香味的咖啡香气～\n与顶部倒 音频：","polarity":"正面","emotion":"畅爽","functional_attrs":["健康轻负担","风味辨识度"],"maternal_scenes":[],"confidence":0.85,"reasoning":"含酣畅/满足/大口解压表达（快餐庆功局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题：打工人不语 只是一味的抢6.9r 柠c美式…. 正文：俺滴妈！！也是赶趟喝上古茗新品柠c美式了🍋\n早八一口下去爆爽爆提神🧊敲键盘都更得劲了\n关键只要6.9r  每天一杯也不心疼！！！\n天天就靠这个活了…都快去试试啊啊啊啊\n-\n古茗柠c美式🍋\n清新的香水柠檬和青橘的碰撞💥中和了美式的苦\n口感丰富，喝起来酸酸甜甜的巨清爽\n满满的维c看得见的低卡健康～\n这一口柠c清爽到简直完胜…太适合夏天了🥵\n早八人都给我焊亖这一杯果咖！！\n#古茗[话题]# #古茗新品[ 音频：","polarity":"正面","emotion":"畅爽","functional_attrs":["健康轻负担"],"maternal_scenes":[],"confidence":0.85,"reasoning":"含酣畅/满足/大口解压表达（快餐庆功局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸大冻梨拿铁还挺好喝 正文：[哇r]我们东北style真是洋气了，瑞幸和乡村爱情出联名，冻梨搭配拿铁好city啊，哈哈哈。谢谢每一位爱东北、支持东北的朋友，作为本地炮，我没少抄大家的功课。\n[害羞r]大冻梨拿铁我选的冰咖啡+少少甜，能喝出来冻梨的甘甜和奶的丝滑，当然咖啡的感觉就不会太浓了，不过整体口感很棒，我很满意。我们室内供暖温度30+，喝一杯好爽（bushi）[doge]\n#冻梨[话题]# #瑞幸大冻梨拿铁[话题]# # 音频：","polarity":"正面","emotion":"畅爽","functional_attrs":["口感顺滑度"],"maternal_scenes":[],"confidence":0.85,"reasoning":"含酣畅/满足/大口解压表达（快餐庆功局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题：古茗咖啡就没有差的 正文：被\"苦尽柑来拿铁\"名字吸引，初尝是可可粉的焦苦，混着淡淡的柑皮涩，让我想起那句人人称道的话：苦尽甘来终有时。\n没人说清苦要熬也没人定义，那甘是浓烈的甜，还是浅淡的回甘。此刻口里只剩苦涩，甘味迟迟未现，忽然觉得，这四个字更像哄人硬撑的谎言，这份不确定的等待，比苦更磨人。\n再饮一大口，舌尖却忽然触到一丝清甜，缓缓中和了苦味，留下温润余韵。原来甘只是藏在苦的底色里，需耐住最的涩，才能撞见这份惊喜。\n苦尽 音频：","polarity":"正面","emotion":"畅爽","functional_attrs":["口感顺滑度","风味辨识度"],"maternal_scenes":[],"confidence":0.85,"reasoning":"含酣畅/满足/大口解压表达（快餐庆功局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：喝到了！忘羡红衣华服新皮肤！瑞门你真的很会 正文：今天有多少忘羡兔叽早起！只为all in这一套！\n联名的纸杯、纸袋、杯套、吧唧、立牌、光栅卡 实物都是绝美啊！\n想供起来！单杯袋都是双面印着忘羡，是真的懂道友啊！\n成年人不做选择，all in 才是本命操作！\n\t\nu1s1 这次的新品雪酪红茶真的有点好喝！\n现打咸芝士奶盖厚到能挖着吃➕现泡红茶 一口就能喝到芝香茶醇 开年第一杯“红”运就是它了！\n\t\n草莓控别错过🍓一大口草莓果茶 嚼得到真实果肉 搭 音频：","polarity":"正面","emotion":"畅爽","functional_attrs":[],"maternal_scenes":[],"confidence":0.85,"reasoning":"含酣畅/满足/大口解压表达（快餐庆功局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"欣赏感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：库迪☕️铂金精品好喝🫡 正文：都试试美式吧！大杯标准原萃！真的不输！\n#好喝到鹅鹅鹅鹅叫[话题]#  音频：","polarity":"正面","emotion":"欣赏感","functional_attrs":["高品质"],"maternal_scenes":[],"confidence":0.83,"reasoning":"含欣赏/颜值惊艳/新奇口味赞叹表达（开运特调局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：咖啡知识 正文：你了解哥斯达黎加的咖啡豆知识吗? #哥斯达黎加[话题]#  #咖啡豆[话题]#  #咖啡知识[话题]#  #精品咖啡[话题]#  #今天你喝咖啡了吗[话题]#  音频：","polarity":"正面","emotion":"欣赏感","functional_attrs":["高品质"],"maternal_scenes":[],"confidence":0.83,"reasoning":"含欣赏/颜值惊艳/新奇口味赞叹表达（开运特调局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：🍂🚗☕️ 正文：#破车也要优雅的开[话题]# #nd2[话题]# #mx5nd2[话题]# #马自达mx5[话题]# \n落叶太美了 音频：","polarity":"正面","emotion":"欣赏感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含欣赏/颜值惊艳/新奇口味赞叹表达（开运特调局）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"惊喜":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题： 正文：库迪的宝藏芒芒生椰拿铁很好喝，今天又买了#比想象中好喝[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含惊喜/宝藏发现/品牌认知颠覆表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸黄油小熊 正文：我的天瑞幸好会，这个小熊真的可爱💥了#瑞幸黄油小熊[话题]# #瑞幸咖啡[话题]# #黄油小熊[话题]# #带上瑞幸黄油小熊过十一[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.72,"reasoning":"含震惊/沦陷/没想到等惊喜感叹词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：库迪咖啡惊喜盒子掉落 正文：还得是迪子，嘿嘿。\n#库迪新春当鸿品味心动[话题]# #库迪心动粉芭乐系列上新[话题]# #库迪联名徐悲鸿美术馆[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含惊喜字面词（正面语境）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：万万没想到莓莓最好喝 正文：喝了几天的软冰，才发现莓莓是最棒的#星巴克软雪星冰乐[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"没想到（正面语境）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸一元咖啡 正文：喝上了，这也太卷了#咖啡[话题]# #瑞幸[话题]# #价格[话题]#  音频：","polarity":"正面","emotion":"惊喜","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.72,"reasoning":"含震惊/沦陷/没想到等惊喜感叹词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"感动":[],"期待感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：小黄油美式还是新西兰生酪！！ 正文：求推荐，一会儿点[害羞r]\n#怎么点好喝[pk]# \n#瑞幸[话题]# #瑞幸咖啡[话题]# #瑞幸新品[话题]# #小黄油拿铁[话题]##库迪咖啡[话题]#  音频：","polarity":"正面","emotion":"期待感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含期待/想试/求推荐表达 (求推荐)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"雀巢","text":"标题：有没有好喝便宜的速溶咖啡上班族求推荐 正文：之前一直喝雀巢 喝够了#雀巢咖啡[话题]# #咖啡[话题]# #咖啡推荐[话题]# #速溶咖啡[话题]#  音频：","polarity":"正面","emotion":"期待感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含期待/想试/求推荐表达 (求推荐)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：如东美食第二弹！ 正文：#美食推荐[话题]#  感觉如东的店铺基本上吃遍了，求推荐好吃小众隐藏店铺！#美食分享[话题]# 音频：","polarity":"正面","emotion":"期待感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含期待/想试/求推荐表达 (求推荐)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：大家最喜欢库迪的哪款咖啡呀 正文：求推荐！\n大家最喜欢库迪的哪款咖啡呀😍#咖啡续命[话题]# #咖啡饮品[话题]# #咖啡测评[话题]# #库迪咖啡[话题]# #重度咖啡爱好者[话题]# #打工人[话题]#  音频：","polarity":"正面","emotion":"期待感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含期待/想试/求推荐表达 (求推荐)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"逗趣感":[],"失望":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸 正文：来比比谁的差评最好笑哈哈哈 音频：","polarity":"负面","emotion":"失望","functional_attrs":[],"maternal_scenes":[],"confidence":0.76,"reasoning":"含明确负面评价/避雷表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题：好奇很久终于去买了 正文：什么都想试只会害了我，好难喝！[失望r]\n#苦尽柑来[话题]# #苦尽柑来拿铁[话题]# #古茗苦尽柑来拿铁[话题]#  音频：","polarity":"负面","emotion":"失望","functional_attrs":[],"maternal_scenes":[],"confidence":0.73,"reasoning":"含明确负面评价表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"皮爷咖啡","text":"标题：皮爷咖啡豆 正文：过年整点好的，蓝瓶子没抢到好失望[哭惹r] 音频：","polarity":"负面","emotion":"失望","functional_attrs":[],"maternal_scenes":[],"confidence":0.85,"reasoning":"含失望/落差表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：芒芒生打椰拿铁 正文：库，这个一般哦，芒果还有点苦，不推荐喝。#库迪咖啡[话题]# #库迪[话题]#  音频：","polarity":"负面","emotion":"失望","functional_attrs":[],"maternal_scenes":[],"confidence":0.73,"reasoning":"含明确负面评价表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题：古茗奶茶免单券 正文：自己不是很想喝 有人要吗 怎么出不是很懂[失望r] 是要代点吗 音频：","polarity":"负面","emotion":"失望","functional_attrs":[],"maternal_scenes":[],"confidence":0.73,"reasoning":"含明确负面评价表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"愉悦":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：换成燕麦奶好好喝呀 正文：一口惊艳 还得是燕麦奶 #瑞幸茉莉花香拿铁[话题]#  音频：","polarity":"正面","emotion":"愉悦","functional_attrs":["风味辨识度"],"maternal_scenes":[],"confidence":0.81,"reasoning":"好喝/好吃（普通语气→愉悦）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"肯德基","text":"标题：好喝的咖啡 正文：#肯悦咖啡[话题]#  好喝好玩还要再喝 肯悦咖啡kcoffee来了 音频：","polarity":"正面","emotion":"愉悦","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"好喝/好吃（普通语气→愉悦）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：打卡俄罗斯的星巴克 正文：抹茶星冰乐没有国内的甜，味道还不错[赞r] 音频：","polarity":"正面","emotion":"愉悦","functional_attrs":[],"maternal_scenes":[],"confidence":0.72,"reasoning":"温和正面评价（还不错/挺好）→ 愉悦","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"摩可纳","text":"标题： 正文：摩可纳咖啡10号好喝吗？\n8号的喝过了，想换其他的[害羞r]#日常文案[话题]# \n#无广告[话题]#  音频：","polarity":"正面","emotion":"愉悦","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"好喝/好吃（普通语气→愉悦）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：plog ：上学日记📔之每天都在喝什么🧃 正文：#随机抽查相册里的美食[话题]# #plog[话题]# #大学生的日常[话题]# #日常碎片plog[话题]# #喝什么[话题]# #上学日记[话题]# #当代女大学生日常[话题]#  #吃饭喝什么[话题]# #在校日常[话题]# #好喝爱喝下次还喝[话题]#  音频：","polarity":"正面","emotion":"愉悦","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"好喝/好吃（普通语气→愉悦）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"分享欲":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"雀巢咖啡","text":"标题：🇲🇾 lotus 🆕️ 好康到5月22  正文：#不懂就问有问必答[话题]##这个模板有点东西[话题]##我的年度爱用分享[话题]# #lotus优惠[话题]# #马来西亚lotus[话题]# #一起薅羊毛[话题]# #超市分享[话题]# #lotus[话题]# #lotus[话题]# #shopping[话题]# #grocery[话题]# #优惠[话题]# #折扣[话题]# #便宜[话题]# #划算[话题]# #物价[话题]# #日用品[话 音频：","polarity":"正面","emotion":"分享欲","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.82,"reasoning":"含分享欲/种草/快去买表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：鸡蛋每天领 正文：小朋友的爱好我竟然给集齐了！#联名[话题]# #店员有种平静的疯感[话题]# #这才是联名的正确打开方式[话题]# #为颜值买单[话题]# #我爱冰箱贴[话题]#  #一代人有一代人的鸡蛋要领[话题]# #大家一起来[话题]#  音频：","polarity":"正面","emotion":"分享欲","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含分享欲/种草/快去买表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：过年啦🧨🧨 正文：泰喜欢红红火火的咯\n零食💗～年夜饭\n#晒晒年夜饭[话题]# #过年[话题]# #气氛到这了一起过年吧[话题]#  音频：","polarity":"正面","emotion":"分享欲","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含分享欲/种草/快去买表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"皮爷咖啡","text":"标题：皮爷太妃糖 正文：这次买了分享装\n过年可以和家人一起吃[吧唧r][吧唧r]\n#太妃糖[话题]# #皮爷咖啡[话题]# #皮爷咖啡海盐太妃糖[话题]# 音频：","polarity":"正面","emotion":"分享欲","functional_attrs":["佐餐搭配性","多规格选择"],"maternal_scenes":[],"confidence":0.82,"reasoning":"含分享欲/种草/快去买表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：带着我的娃去咖啡节偶遇老陈 正文：#中山小榄咖啡节[话题]# #执着咖啡[话题]# 特调好喝！[点赞r]#咖啡节[话题]# #不一样的咖啡搭子[话题]# #一起去喝点儿咖啡生活节[话题]# #有点意思咖啡节[话题]# #带娃也要喝咖啡[话题]#  音频：","polarity":"正面","emotion":"分享欲","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含分享欲/种草/快去买表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"掌控感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题：^宅家 独处 安静学习 正文：-\n记录一些宅家学习的幸福瞬间\n\t\n#学习日常[话题]# #自律[话题]# #学习日记[话题]# #宅家日常[话题]# #plog[话题]# 音频：","polarity":"正面","emotion":"掌控感","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含掌控感/成分党/精准补充表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"无奈":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：死心了 正文：本来还抱着希望想试试，结果，算了吧，唉\n#美式浅烘[话题]# #澳网[话题]# #瑞幸备注[话题]# #瑞幸备注[话题]##澳网周边[话题]# #挂件[话题]# #避坑指南[话题]# #死心[话题]# #咖啡[话题]# #一代人有一代人的垃圾[话题]#  音频：","polarity":"负面","emotion":"无奈","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含无奈/将就表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：被迫又喝了一杯茉莉花香拿铁🤗 正文：#咖啡续命[话题]# #咖啡续命[话题]#  这礼拜必须喝上#瑞幸茉莉花香美式[话题]# [微笑r] 音频：","polarity":"负面","emotion":"无奈","functional_attrs":["风味辨识度"],"maternal_scenes":[],"confidence":0.81,"reasoning":"含无奈/将就表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：🇲🇴澳门吃到的…… 正文：不得不说澳门你真的好好吃！！！\n\t\n#大声安利本地美食[话题]# \n#地球村食评人大赛[话题]# \n#澳门吃喝玩乐[话题]# \n#澳门旅游[话题]# \n#澳门美食[话题]# \n#澳门[话题]#  音频：","polarity":"负面","emotion":"无奈","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含无奈/将就表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"摩可纳","text":"标题：太划算了吧 正文：想问一下百亿补贴的是不是正品#摩可纳[话题]# #咖啡[话题]# 音频：","polarity":"负面","emotion":"无奈","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.81,"reasoning":"含无奈/将就表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"感激":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"永璞","text":"标题：李佳琦哪有赵一鸣香啊 正文：谢谢小红书的集美们，1.9元一条真香了#永璞咖啡[话题]# #赵一鸣[话题]# 音频：","polarity":"正面","emotion":"感激","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"含感谢表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：谢谢我的妈妈给我买1kg咖啡豆 正文：家里到底有几口人啊要买1kg[叹气r] 音频：","polarity":"正面","emotion":"感激","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"含感谢表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：请问我们是实现共产主义了吗 正文：让我们说：感谢商战\n#我不能理解[话题]# #商战[话题]# #感恩[话题]##京东[话题]# #京东外卖[话题]#  音频：","polarity":"正面","emotion":"感激","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"含感谢表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"探秘感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸打工人今天喝什么之-柚c美式☕️ 正文：柚c怎么喝都不腻啊！！！\n#瑞幸咖啡[话题]# #瑞幸咖啡[话题]# #cotd咖啡探店[话题]# #我的咖啡日记[话题]# #在平凡日子里热爱生活[话题]# 音频：","polarity":"正面","emotion":"探秘感","functional_attrs":[],"maternal_scenes":[],"confidence":0.77,"reasoning":"含探店/发现/测评表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：星巴克臻选玫瑰乳扇风味拿铁🍹 正文：星巴克臻选玫瑰乳扇风味拿铁\n#炫一个高颜值下午茶[话题]# #cotd咖啡探店[话题]# #我的咖啡日记[话题]# #星巴克咖啡[话题]# #星巴克[话题]# #星巴克新品[话题]#  音频：","polarity":"正面","emotion":"探秘感","functional_attrs":["场景适配度"],"maternal_scenes":[],"confidence":0.77,"reasoning":"含探店/发现/测评表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：想问问瑞的伙伴们 正文：你们在里面待着真的不会冷到感冒吗[暗中观察r]#探店打卡[话题]# #瑞幸[话题]# #瑞幸工作[话题]# #瑞幸兼职[话题]#  音频：","polarity":"正面","emotion":"探秘感","functional_attrs":[],"maternal_scenes":[],"confidence":0.77,"reasoning":"含探店/发现/测评表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：星巴克耳机包可爱捏！ 正文：是谁为爱下单！#星巴克[话题]# #星巴克七夕[话题]# #星巴克耳机包[话题]# \n#合肥探店[话题]# #合肥美食[话题]# #合肥咖啡[话题]# #七夕[话题]#  音频：","polarity":"正面","emotion":"探秘感","functional_attrs":[],"maternal_scenes":[],"confidence":0.77,"reasoning":"含探店/发现/测评表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"安心感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"雀巢咖啡","text":"标题：雀巢咖啡除了旗舰店哪里买靠谱点 正文：如题，想买这款咖啡，求推荐店铺#平价黑咖啡[话题]# #咖啡推荐[话题]# #雀巢咖啡[话题]#  音频：","polarity":"正面","emotion":"安心感","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.83,"reasoning":"含放心/安全/品质保障等安心感表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"活力感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：星巴克日记｜当阿猪在星巴克过年 正文：我们活力满满！我们年味十足！！\n#大家的春节[话题]# #我的咖啡日记[话题]# #星巴克[话题]#  音频：","polarity":"正面","emotion":"活力感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含活力感/元气满满/运动能量表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"怀旧感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：你的第一杯瑞幸是什么时候？ 正文：2018年12月4号。第一杯#瑞幸[话题]# #瑞幸咖啡[话题]# #瑞幸种草[话题]# #秋天的第一杯奶茶[话题]# #回忆[话题]# #咖啡[话题]# #瑞幸瑞纳冰[话题]# #瑞幸没以前好喝了[话题]# #瑞幸咖啡测评[话题]# #瑞幸打工人[话题]#  音频：","polarity":"正面","emotion":"怀旧感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含怀旧/童年回忆/老味道表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸是下午喝的，人是晚上疯的！ 正文：虽然好喝，但是喝了是真的睡不着#瑞幸新品[话题]# #长安的荔枝冻冻[话题]# #太久了的回忆录[话题]#  音频：","polarity":"正面","emotion":"怀旧感","functional_attrs":["场景适配度"],"maternal_scenes":[],"confidence":0.84,"reasoning":"含怀旧/童年回忆/老味道表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：生活碎片🧩 正文：实况的意义就是把回忆定格！#我的日常[话题]# #假期日常[话题]# #把小红书当朋友圈发系列[话题]# #分享生活[话题]# #日常碎片[话题]# 音频：","polarity":"正面","emotion":"怀旧感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含怀旧/童年回忆/老味道表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：老瑞人交作业啦！ 正文：18年瑞幸大学博士生，怀念！#瑞幸杯套[话题]#  音频：","polarity":"正面","emotion":"怀旧感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含怀旧/童年回忆/老味道表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"挫败感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：酸q脸 正文：文案：番茄的计划失败了…谁叫这次瑞幸的轻咖柠檬茶那么好喝呢～\n#可爱[话题]##搞笑[话题]##没脑子日常[话题]##脑洞[话题]##漫画[话题]##绘本[话题]##瑞幸[话题]##想象力[话题]# 音频：","polarity":"负面","emotion":"挫败感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含挫败/失败表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"共情感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：谁懂 正文：好莫名其妙的笑点啊啊啊啊啊#五月天[话题]# #星巴克[话题]#  音频：","polarity":"正面","emotion":"共情感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含共情/谁懂/有共鸣表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：柚c能不能立刻回归呀 正文：真的很爱喝谁懂#瑞幸[话题]##本命咖啡[话题]# #柚c美式[话题]#   音频：","polarity":"正面","emotion":"共情感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含共情/谁懂/有共鸣表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"狂喜":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"摩可纳","text":"标题：摩可纳封神，自制拿铁 正文：用常温水冲泡析出油脂也非常好，配上冰牛奶，简直起飞#速溶咖啡[话题]# #摩可纳咖啡[话题]# #摩可纳5号[话题]# #拿铁[话题]# 音频：","polarity":"正面","emotion":"狂喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.88,"reasoning":"含极度兴奋/封神级表达 (封神)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸联名纸袋 ii 正文：前一贴18张图更满了。\n\t\n#瑞幸[话题]# #瑞幸联名[话题]# #刘亦菲[话题]# #wiggle联名[话题]# #黄油小熊[话题]# #线条小狗[话题]# #封神第二部[话题]# 音频：","polarity":"正面","emotion":"狂喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.88,"reasoning":"含极度兴奋/封神级表达 (封神)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"MANNER COFFEE","text":"标题：manner 封神了！！ 正文：dirty永远是我的首选 喝完心情瞬间舒畅😘#就要咖啡自由[话题]# #coffee[话题]##manner[话题]# 音频：","polarity":"正面","emotion":"狂喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.88,"reasoning":"含极度兴奋/封神级表达 (封神)","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"肯德基","text":"标题： 正文：#肯悦咖啡白敬亭周边[话题]##肯悦咖啡白敬亭联名[话题]# 终于买到周边啦 难哄剧粉狂喜[萌萌哒r]#原来咖啡还能这么玩[话题]#  音频：","polarity":"正面","emotion":"狂喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.86,"reasoning":"含狂喜表达词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：中财校内库迪终于开业啦！！！ 正文：沙河人民狂喜\n#中央财经大学[话题]# #大学[话题]# #大学生[话题]# #咖啡[话题]# #咖啡日常[话题]# #库迪咖啡[话题]# #库迪[话题]# #北京[话题]# \n 音频：","polarity":"正面","emotion":"狂喜","functional_attrs":[],"maternal_scenes":[],"confidence":0.86,"reasoning":"含狂喜表达词","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"困惑感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题： 正文：创啥创啊？又搞什么鬼啊？你还创上了？[鄙视r]#瑞幸咖啡[话题]# #生椰拿铁[话题]#  音频：","polarity":"负面","emotion":"困惑感","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"含困惑/不理解表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：航旅黔购中签了？怎么办？ 正文：一脸懵逼，不知道拿来干嘛[扯脸h][扯脸h]#飞天茅台[话题]# #航旅黔购[话题]#  音频：","polarity":"负面","emotion":"困惑感","functional_attrs":[],"maternal_scenes":[],"confidence":0.8,"reasoning":"含困惑/不理解表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"满足感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：小孕妇醒来之后的幸福时刻 正文：#我爱喝咖啡[话题]# #满足感爆棚[话题]# #起床第一件事[话题]# \n每天都会期待咖啡送达的时刻。\n无可救药。\n 音频：","polarity":"正面","emotion":"满足感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含满足感/需求被充分回应表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"急迫感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"MANNER COFFEE","text":"标题： 正文：要过年了，赶紧囤货，冰冻浓缩，可以有。[派对r][派对r][派对r]\n#浓缩咖啡[话题]# #manner[话题]#  音频：","polarity":"正面","emotion":"急迫感","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含急迫/立刻行动表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：还有谁没看到吗❓ 正文：献给明天早八的姐妹们[举手r]\n#真的很爱[话题]# #冲冲冲[话题]# #咖啡[话题]# #瑞幸[话题]#  音频：","polarity":"正面","emotion":"急迫感","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含急迫/立刻行动表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"庆幸感":[],"依恋感":[],"小确幸":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"皮爷咖啡","text":"标题：想把皮爷牢牢焊死 正文：在身上\n每天皮爷的第每天#咖啡续命[话题]# #咖啡爱好者[话题]# #咖啡控[话题]# #coffee[话题]# #悠闲时光慢生活[话题]# #小确幸[话题]# #休闲时光[话题]# #惬意时光[话题]# #节日快乐[话题]# #春节去哪儿[话题]# #皮爷咖啡[话题]#  音频：","polarity":"正面","emotion":"小确幸","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含小确幸/微小幸福/日常美好表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"Nespresso","text":"标题：今天份的小确幸 正文：一个味道，买了20个，发了20条。\n#nespresso胶囊[话题]#  音频：","polarity":"正面","emotion":"小确幸","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含小确幸/微小幸福/日常美好表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"遗憾":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"雀巢","text":"标题：到底哪个便利店有啊啊啊啊啊🥺 正文：跑了好几个都没货了 没招了#金珉奎[话题]# #雀巢咖啡[话题]# #香港[话题]#  音频：","polarity":"负面","emotion":"遗憾","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含遗憾/可惜/后悔表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"迷恋感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"古茗","text":"标题： 正文：每天一杯古茗鲜奶拿铁不加糖有危害吗，已经上瘾了 #窜稀又窜稀[话题]# #不额外加糖[话题]# #咖啡[话题]#  音频：","polarity":"正面","emotion":"迷恋感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含迷恋/上瘾/欲罢不能表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：小夏喝播第二弹 正文：©️社恐吃货小夏#妈呀太香了[话题]# #吃播[话题]# #这一口好city啊[话题]# #甜品治愈一切[话题]# #这一口甜品好city啊[话题]# #好喝停不下来[话题]# #喝出新高度[话题]# #奶茶[话题]# #咖啡[话题]# #饮料[话题]#  音频：对。啊。哇。","polarity":"正面","emotion":"迷恋感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含迷恋/上瘾/欲罢不能表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"成就感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞幸的苹果一箱🍎🍎🍎🍎🍎🍎 正文：终于把周边利用起来了\n完美适配\n#瑞幸新品[话题]#\n#阿克苏苹果拿铁[话题]# \n#苹果c美式[话题]# \n #钩织苹果[话题]#  音频：","polarity":"正面","emotion":"成就感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"终于（正面语境）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"认同感":[],"肆意感":[],"仪式感":[],"不甘":[],"纠结感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：想要一个全是，lucky coffee的评论区 正文：#我的咖啡日记[话题]#  #咖啡日常[话题]# #生椰拿铁[话题]# #拿铁[话题]# #瑞幸咖啡[话题]#@小红书创作助手 @小红书redesign #瑞幸咖啡哪个好喝 [投票]# 音频：","polarity":"负面","emotion":"纠结感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"含纠结感/两难选择/vs对比表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：姐妹们！！库迪哪个好喝？？ 正文：姐妹们喝过好喝的\n不要藏着\n快说出来！！#库迪[话题]# #库迪咖啡[话题]# \n 音频：","polarity":"负面","emotion":"纠结感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"含纠结感/两难选择/vs对比表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：纠结😫 正文：买哪款啊，想要同款杯子，但又想要浓缩咖啡液[哭惹r]怎么不在一个套餐里 音频：","polarity":"负面","emotion":"纠结感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"含纠结感/两难选择/vs对比表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题： 正文：#库迪咖啡[话题]# 库vs瑞 抹茶粉对比 你们喜欢喝哪种？ 音频：","polarity":"负面","emotion":"纠结感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"含纠结感/两难选择/vs对比表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：急急急…库迪哪个新品好喝？？ 正文：居然出纤果茶了[哇r]哪个好喝呀\n#库迪新品[话题]# #库迪宝可梦[话题]# #奶茶推荐[话题]#  音频：","polarity":"负面","emotion":"纠结感","functional_attrs":[],"maternal_scenes":[],"confidence":0.78,"reasoning":"含纠结感/两难选择/vs对比表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"烦躁":[],"软萌感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"库迪咖啡","text":"标题：在东农吃点啥！！！ 正文：#笑死我了[话题]# 大家有感兴趣的卡哇伊留言[扯脸h][扯脸h] 音频：","polarity":"正面","emotion":"软萌感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含软萌/呆萌/奶呼呼/哈基米等造型萌系表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：🎀沉浸式手帐✨get超可爱的熊店长活页本！ 正文：#沉浸式做手帐[话题]# #手帐分享[话题]# #极繁手帐[话题]# #星巴克萌熊手帐本[话题]# #星巴克萌熊摇摇笔[话题]# #星巴克文具[话题]# #星巴克学习搭子[话题]# #星子自习室[话题]# #专星七周年[话题]# #星巴克周边[话题]# 音频：","polarity":"正面","emotion":"软萌感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含软萌/呆萌/奶呼呼/哈基米等造型萌系表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：太萌了🧸🥰 正文：和雨衣盘简直绝配！#瑞幸小黄油拿铁[话题]# #seventeen[话题]# 音频：","polarity":"正面","emotion":"软萌感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含软萌/呆萌/奶呼呼/哈基米等造型萌系表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"焦虑感":[],"生气":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"麦当劳","text":"标题：为什么贵阳的麦当劳就和其他地方不一样 正文：@麦当劳。早上购买早餐为什么贵阳地区几年了都不允许咖啡续杯啊……之前投诉过一次明确答复鲜萃咖啡是可以续杯的……怎么有的店甚至不愿意煮咖啡啊……明明点单的时候有取餐的时候告知没有，我强烈要求要咖啡才拿出咖啡粉做萃取。\n\t\n 音频：","polarity":"负面","emotion":"生气","functional_attrs":["价格感知"],"maternal_scenes":[],"confidence":0.88,"reasoning":"含强烈愤怒表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"松弛感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：在南通｜今天喝了吗？☕️☕️ 正文：被雨天治愈的咖啡#惬意时光[话题]# #在路上[话题]# #下雨天[话题]# #过年[话题]#  音频：","polarity":"正面","emotion":"松弛感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含松弛/惬意/淡人/慢生活等随性生活态度表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"怀疑感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题： 正文：#星巴克❌[话题]# \n买过历史最难喝的咖啡豆没有之一。焦苦.没有油脂。巨巨难喝#踩雷[话题]# # 音频：","polarity":"负面","emotion":"怀疑感","functional_attrs":[],"maternal_scenes":[],"confidence":0.81,"reasoning":"含踩雷预警","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"归属感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：这才是人间的烟火味儿 正文：#来北京吃什么 #贴秋膘 #北京美食攻略 #北京胡同美食#体验北京烟火气#老北炙子烤肉有多绝       音频：","polarity":"正面","emotion":"归属感","functional_attrs":[],"maternal_scenes":[],"confidence":0.84,"reasoning":"含归属感/家的味道/家乡记忆表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"反感":[],"崇拜感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：牛逼 正文：大上午喝完给我整的心也慌慌的手也抖抖的\n#瑞幸[话题]# #轻咖柠檬茶[话题]#  音频：","polarity":"正面","emotion":"崇拜感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含崇拜/膜拜/佩服表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：星巴克哈利波特联名 吃相难看 正文：短短半个小时涨价20块[点赞r]好厉害#哈利波特[话题]# #星巴克[话题]# #星巴克新品[话题]# #星巴克哈利波特联名[话题]#  音频：","polarity":"正面","emotion":"崇拜感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含崇拜/膜拜/佩服表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：不吹牛逼：杯底这坨黑色是精华中的精华‼️ 正文：真的巨好喝！#我的咖啡日记[话题]# #星巴克[话题]# #升级版海盐焦糖风味冰震浓缩[话题]# #冰震浓缩[话题]# #海盐焦糖冰震浓缩[话题]# #咖啡日常[话题]# #星巴克新品咖啡[话题]# #星巴克隐形菜单[话题]# #美食分享[话题]#  音频：","polarity":"正面","emotion":"崇拜感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含崇拜/膜拜/佩服表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"激励感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"星巴克","text":"标题：政治理论的重要性不言而喻 正文：接下来的考试加油！\n试试发布功能正不正常 音频：","polarity":"正面","emotion":"激励感","functional_attrs":[],"maternal_scenes":[],"confidence":0.79,"reasoning":"含激励感/正能量/加油表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"失落":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题： 正文：瑞幸小黄油脆苹果拿铁下架了吗？为啥郑州全部门店都断货了[哭惹r] 音频：","polarity":"负面","emotion":"失落","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含错过/买不到/失落表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"精致感":[],"委屈":[],"负罪感":[],"倦怠感":[],"放松感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：你钟意吗 正文：好稀罕～这只敲可爱的黄油小熊呀！\n\t\n#治愈系小熊[话题]# #黄油小熊[话题]# #摆件[话题]# #瑞幸新品[话题]# #黄油小熊联名[话题]# #小熊[话题]# #于是有了小熊[话题]#  音频：","polarity":"正面","emotion":"放松感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含放松/解压/卸压状态转换表达（v4）","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"微醺感":[],"信赖感":[],"被支持感":[],"救赎感":[],"骄傲":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：周一美式： 正文：酸角美式\n难评😕\n\t\n#日常[话题]#\n#live图[话题]#\n#美式[话题]#\n#瑞幸[话题]#\n#氛围感[话题]#\n#手机摄影[话题]#\n#咖啡日常[话题]#\n#瑞幸酸角美式[话题]#\n#我的咖啡日记[话题]#\n#荣耀峡谷一杯咖[话题]# 音频：","polarity":"正面","emotion":"骄傲","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含骄傲/自豪表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"},{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：瑞瑞✖️小王 正文：仙品[喝奶茶r] #瑞幸咖啡[话题]##王者荣耀[话题]#  音频：","polarity":"正面","emotion":"骄傲","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含骄傲/自豪表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"治愈感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"瑞幸咖啡","text":"标题：盖盖子的声音真的好治愈！ 正文：过阵子高低整个盖盖子的合集[得意r]\n#瑞幸打工人[话题]# #瑞幸[话题]# #瑞幸黑奴[话题]# #上班vlog[话题]#  音频：","polarity":"正面","emotion":"治愈感","functional_attrs":[],"maternal_scenes":[],"confidence":0.83,"reasoning":"含治愈感/疗愈/抚平情绪表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"优越感":[{"note_id":"","note_url":"","image_url":"","week":"","brand":"COSTA","text":"标题：【313】咖啡榜单来了哪个是你的最爱最爱？ 正文：第一名牛掰遥遥领先#十万个排行榜[话题]#  音频：","polarity":"正面","emotion":"优越感","functional_attrs":[],"maternal_scenes":[],"confidence":0.82,"reasoning":"含优越感/高端选择/有眼光表达","exposure":0,"version":"v5.1-maternal","label_date":"2026-04-20"}],"心动感":[],"无聊感":[],"成长感":[],"温暖/关爱感":[],"担心感":[],"自信":[],"自由感":[],"羡慕感":[],"感恩/感激":[],"启迪感":[]},"qoq":{"失望":{"prev":0.0,"curr":0.0,"delta":0.0},"愉悦":{"prev":0.0,"curr":0.0,"delta":0.0},"分享欲":{"prev":0.0,"curr":0.0,"delta":0.0},"掌控感":{"prev":0.0,"curr":0.0,"delta":0.0},"畅爽":{"prev":0.0,"curr":0.0,"delta":0.0},"无奈":{"prev":0.0,"curr":0.0,"delta":0.0},"感激":{"prev":0.0,"curr":0.0,"delta":0.0},"探秘感":{"prev":0.0,"curr":0.0,"delta":0.0},"逗趣感":{"prev":0.0,"curr":0.0,"delta":0.0},"惊喜":{"prev":0.0,"curr":0.0,"delta":0.0},"安心感":{"prev":0.0,"curr":0.0,"delta":0.0},"活力感":{"prev":0.0,"curr":0.0,"delta":0.0},"怀旧感":{"prev":0.0,"curr":0.0,"delta":0.0},"期待感":{"prev":0.0,"curr":0.0,"delta":0.0},"挫败感":{"prev":0.0,"curr":0.0,"delta":0.0},"共情感":{"prev":0.0,"curr":0.0,"delta":0.0},"欣赏感":{"prev":0.0,"curr":0.0,"delta":0.0},"狂喜":{"prev":0.0,"curr":0.0,"delta":0.0},"困惑感":{"prev":0.0,"curr":0.0,"delta":0.0},"满足感":{"prev":0.0,"curr":0.0,"delta":0.0},"急迫感":{"prev":0.0,"curr":0.0,"delta":0.0},"庆幸感":{"prev":0.0,"curr":0.0,"delta":0.0},"依恋感":{"prev":0.0,"curr":0.0,"delta":0.0},"小确幸":{"prev":0.0,"curr":0.0,"delta":0.0},"遗憾":{"prev":0.0,"curr":0.0,"delta":0.0},"迷恋感":{"prev":0.0,"curr":0.0,"delta":0.0},"成就感":{"prev":0.0,"curr":0.0,"delta":0.0},"认同感":{"prev":0.0,"curr":0.0,"delta":0.0},"肆意感":{"prev":0.0,"curr":0.0,"delta":0.0},"仪式感":{"prev":0.0,"curr":0.0,"delta":0.0}},"emotion_keywords":{"感激":["感谢","谢谢"],"困惑感":[],"信赖感":["回购"],"分享欲":["安利","推荐给","种草","必买","强推","快去买"],"生气":["无语","愤怒表达","客服","贵","坑","踩雷","售后","冤种"],"优越感":[],"倦怠感":[],"烦躁":[],"探秘感":["探店","测评","实测","第一次","尝试","发现"],"微醺感":["酒饮语境"],"欣赏感":["好看","精致","质感","太美了","漂亮","包装"],"放松感":["治愈","轻松","解压","舒服","沉浸式","班味"],"负罪感":["优先于失望"],"担心感":["怕","担心","害怕"],"期待感":["求推荐","想尝试","迫不及待","推荐一下","想试试","想尝","期待","想试"],"愉悦":["好喝","好吃","快乐","好好喝","开心","好好吃"],"怀疑感":["事前质疑"],"感动":["泪目","破防","送","礼物","妈妈","长辈","父母","年货"],"无奈":["没办法","不喝","只能"],"心动感":["心动","一眼心动"],"崇拜感":["太厉害了","好厉害","太牛了","大神","膜拜","跪了","强到离谱","无敌了"],"治愈感":["治愈","被治愈"],"小确幸":["小确幸","小美好","今日份快乐"],"反感":["强烈负面语气"],"遗憾":["但产品正面","属遗憾","买少了","后悔","可惜","遗憾","踩坑"],"焦虑感":["焦虑"],"启迪感":["学到了","涨知识了","原来如此","恍然大悟","开眼界了","长见识了","第一次知道"],"安心感":["放心","干净","安心","靠谱","配料","大品牌"],"肆意感":["就现在","肆意","随心"],"骄傲":[],"激励感":["加油","继续努力","你可以的","相信自己","燃起来了","鼓励一下"],"软萌感":["可爱","萌","糯叽叽","萌化了","毛绒","可爱到爆"],"不甘":[],"失落":["没想到"],"活力感":[],"认同感":["真的","一模一样","懂我"],"共情感":["谁懂","懂我"],"畅爽":["爽","一口","大口","过瘾","畅快","冰爽"],"失望":["实际体验后的失望","失望","后悔","不值","浪费","没用"],"归属感":[],"仪式感":["仪式感","郑重","特别的","值得纪念","精心"],"温暖/关爱感":[],"怀旧感":[],"纠结感":["纠结","选哪个","到底","犹豫","好难选","拿不定主意"],"松弛感":["惬意","松弛","淡人","放空","不费力","随意"],"挫败感":["失败","又失败"],"急迫感":["赶紧去买","立刻去","马上冲","已经冲了","冲冲冲","必须买","赶紧囤"],"羡慕感":["好羡慕","真羡慕","羡慕死了","好嫉妒","好想有","多希望我也"],"依恋感":[],"掌控感":[],"迷恋感":["念念不忘","停不下来","每天都要"],"成就感":["终于做到了","终于成功了","目标达成","突破了自己","我做到了","完成挑战"],"救赎感":[],"狂喜":["封神","太绝了","真的绝了","绝绝子","爱疯了","绝了","神仙"],"惊喜":["没想到","惊喜","发现","隐藏","震惊","宝藏"],"庆幸感":["庆幸","幸好","幸亏","好在","万幸","还好没","太幸运了"],"逗趣感":["belike","邪修","整蛊","哈哈","笑","笑死","搞笑","奇葩"]},"emotion_sources":{},"core_emotions":[],"functional_attrs":{"top_attrs":["健康轻负担","口感顺滑度","风味辨识度","价格感知","饮后舒适度","场景适配度","适合送礼","包装颜值","低GI血糖友好","高品质","佐餐搭配性","即食便捷性","多规格选择"],"attr_dist":{"健康轻负担":7.7,"口感顺滑度":7.1,"风味辨识度":9.4,"价格感知":11.0,"饮后舒适度":1.3,"场景适配度":2.9,"适合送礼":1.2,"包装颜值":0.6,"低GI血糖友好":0.7,"高品质":1.7,"佐餐搭配性":1.7,"即食便捷性":0.2,"多规格选择":0.0},"attr_dist_exp":{"健康轻负担":0.0,"口感顺滑度":0.0,"风味辨识度":0.0,"价格感知":0.0,"饮后舒适度":0.0,"场景适配度":0.0,"适合送礼":0.0,"包装颜值":0.0,"低GI血糖友好":0.0,"高品质":0.0,"佐餐搭配性":0.0,"即食便捷性":0.0,"多规格选择":0.0},"attr_count":{"健康轻负担":356,"口感顺滑度":326,"风味辨识度":431,"价格感知":508,"饮后舒适度":62,"场景适配度":134,"适合送礼":57,"包装颜值":29,"低GI血糖友好":33,"高品质":79,"佐餐搭配性":76,"即食便捷性":7,"多规格选择":1},"attr_exp":{"健康轻负担":0.0,"口感顺滑度":0.0,"风味辨识度":0.0,"价格感知":0.0,"饮后舒适度":0.0,"场景适配度":0.0,"适合送礼":0.0,"包装颜值":0.0,"低GI血糖友好":0.0,"高品质":0.0,"佐餐搭配性":0.0,"即食便捷性":0.0,"多规格选择":0.0},"attr_by_emotion":{"健康轻负担":{"愉悦":74,"惊喜":26,"无奈":4,"依恋感":4,"安心感":33,"畅爽":23,"共情感":4,"肆意感":1,"分享欲":21,"怀疑感":14,"失望":47,"负罪感":2,"激励感":3,"怀旧感":2,"仪式感":2,"探秘感":8,"逗趣感":8,"纠结感":3,"被支持感":1,"遗憾":3,"迷恋感":3,"软萌感":2,"认同感":4,"成就感":8,"狂喜":9,"崇拜感":2,"欣赏感":6,"掌控感":7,"期待感":5,"生气":2,"松弛感":2,"放松感":2,"困惑感":1,"感动":1,"活力感":2,"感激":6,"庆幸感":1,"反感":2,"失落":1,"烦躁":2,"急迫感":2,"挫败感":1,"担心感":2},"口感顺滑度":{"愉悦":60,"分享欲":19,"狂喜":14,"惊喜":44,"小确幸":1,"遗憾":5,"成就感":11,"肆意感":1,"仪式感":5,"失望":42,"畅爽":25,"微醺感":2,"欣赏感":9,"共情感":7,"安心感":8,"纠结感":5,"逗趣感":7,"怀旧感":3,"被支持感":2,"困惑感":1,"松弛感":5,"崇拜感":2,"迷恋感":3,"怀疑感":8,"放松感":3,"活力感":2,"归属感":1,"感激":5,"感动":1,"软萌感":3,"依恋感":2,"急迫感":1,"温暖/关爱感":4,"探秘感":7,"认同感":2,"反感":1,"负罪感":2,"救赎感":1,"庆幸感":1,"心动感":1},"风味辨识度":{"愉悦":85,"失望":57,"畅爽":37,"狂喜":17,"惊喜":52,"成就感":8,"无奈":4,"肆意感":1,"软萌感":6,"迷恋感":3,"认同感":3,"怀旧感":2,"逗趣感":14,"小确幸":1,"探秘感":6,"分享欲":30,"微醺感":5,"安心感":13,"松弛感":4,"仪式感":5,"欣赏感":10,"共情感":9,"遗憾":10,"纠结感":4,"被支持感":1,"困惑感":1,"崇拜感":2,"怀疑感":9,"放松感":3,"活力感":3,"感动":3,"依恋感":2,"感激":4,"温暖/关爱感":2,"失落":2,"优越感":1,"负罪感":1,"救赎感":2,"反感":3,"挫败感":1,"庆幸感":1,"期待感":1,"激励感":1,"生气":1,"骄傲":1},"价格感知":{"愉悦":108,"感激":12,"失望":74,"狂喜":17,"急迫感":4,"遗憾":12,"安心感":17,"分享欲":37,"仪式感":6,"探秘感":14,"纠结感":9,"畅爽":12,"失落":5,"成就感":4,"认同感":9,"怀旧感":5,"无奈":15,"惊喜":48,"崇拜感":1,"肆意感":1,"怀疑感":18,"期待感":7,"逗趣感":23,"优越感":1,"生气":6,"掌控感":2,"心动感":1,"依恋感":1,"软萌感":1,"欣赏感":9,"挫败感":1,"松弛感":3,"微醺感":1,"感动":2,"放松感":1,"活力感":2,"激励感":4,"小确幸":1,"迷恋感":3,"倦怠感":1,"庆幸感":3,"温暖/关爱感":1,"归属感":1,"共情感":3,"烦躁":1,"担心感":1},"饮后舒适度":{"分享欲":10,"活力感":1,"崇拜感":1,"愉悦":6,"畅爽":2,"安心感":3,"失望":11,"惊喜":2,"救赎感":2,"狂喜":1,"期待感":3,"成就感":1,"怀疑感":1,"激励感":1,"焦虑感":1,"逗趣感":4,"松弛感":1,"欣赏感":2,"信赖感":1,"怀旧感":1,"归属感":1,"探秘感":2,"挫败感":1,"遗憾":2,"感激":1},"场景适配度":{"无奈":5,"安心感":4,"愉悦":18,"认同感":3,"怀旧感":4,"精致感":1,"松弛感":5,"失望":13,"畅爽":9,"被支持感":2,"崇拜感":1,"共情感":2,"探秘感":8,"分享欲":10,"惊喜":15,"迷恋感":1,"放松感":1,"狂喜":6,"逗趣感":8,"挫败感":1,"欣赏感":1,"成就感":2,"仪式感":2,"焦虑感":1,"温暖/关爱感":1,"急迫感":1,"软萌感":1,"遗憾":3,"怀疑感":1,"纠结感":2,"生气":1,"反感":1},"适合送礼":{"愉悦":5,"软萌感":1,"分享欲":8,"庆幸感":2,"狂喜":4,"安心感":3,"治愈感":1,"失望":4,"感激":2,"惊喜":6,"感动":2,"欣赏感":3,"怀旧感":3,"活力感":1,"无奈":3,"仪式感":2,"畅爽":2,"共情感":1,"遗憾":1,"不甘":1,"逗趣感":1,"期待感":1},"包装颜值":{"欣赏感":2,"失望":1,"分享欲":4,"惊喜":3,"畅爽":2,"探秘感":5,"愉悦":3,"仪式感":1,"无奈":2,"狂喜":1,"逗趣感":2,"软萌感":1,"遗憾":1,"救赎感":1},"低GI血糖友好":{"安心感":9,"失落":1,"逗趣感":2,"惊喜":2,"探秘感":2,"分享欲":1,"愉悦":6,"狂喜":1,"失望":5,"畅爽":1,"欣赏感":1,"生气":1,"怀疑感":1},"高品质":{"欣赏感":40,"失望":4,"畅爽":2,"惊喜":13,"无奈":3,"激励感":1,"逗趣感":2,"松弛感":2,"感激":2,"愉悦":1,"认同感":1,"优越感":1,"肆意感":1,"探秘感":1,"感恩/感激":1,"仪式感":1,"担心感":1,"掌控感":1,"怀疑感":1},"佐餐搭配性":{"分享欲":10,"愉悦":12,"遗憾":2,"失望":14,"惊喜":8,"狂喜":6,"烦躁":1,"软萌感":1,"逗趣感":2,"安心感":5,"无奈":2,"活力感":2,"信赖感":1,"共情感":1,"庆幸感":1,"畅爽":2,"温暖/关爱感":1,"掌控感":1,"生气":1,"期待感":1,"仪式感":1,"怀旧感":1},"即食便捷性":{"困惑感":1,"松弛感":1,"惊喜":1,"狂喜":1,"畅爽":1,"失望":1,"分享欲":1},"多规格选择":{"分享欲":1}},"attr_over_time":{"健康轻负担":{"counts":[356],"exposure":[0.0],"rates":[0.0]},"口感顺滑度":{"counts":[326],"exposure":[0.0],"rates":[0.0]},"风味辨识度":{"counts":[431],"exposure":[0.0],"rates":[0.0]},"价格感知":{"counts":[508],"exposure":[0.0],"rates":[0.0]},"饮后舒适度":{"counts":[62],"exposure":[0.0],"rates":[0.0]},"场景适配度":{"counts":[134],"exposure":[0.0],"rates":[0.0]},"适合送礼":{"counts":[57],"exposure":[0.0],"rates":[0.0]},"包装颜值":{"counts":[29],"exposure":[0.0],"rates":[0.0]},"低GI血糖友好":{"counts":[33],"exposure":[0.0],"rates":[0.0]},"高品质":{"counts":[79],"exposure":[0.0],"rates":[0.0]},"佐餐搭配性":{"counts":[76],"exposure":[0.0],"rates":[0.0]},"即食便捷性":{"counts":[7],"exposure":[0.0],"rates":[0.0]},"多规格选择":{"counts":[1],"exposure":[0.0],"rates":[0.0]}},"attr_emotion_matrix":{"健康轻负担":{"失望":47,"愉悦":74,"分享欲":21,"掌控感":7,"畅爽":23,"无奈":4,"感激":6,"探秘感":8,"逗趣感":8,"惊喜":26},"口感顺滑度":{"失望":42,"愉悦":60,"分享欲":19,"掌控感":0,"畅爽":25,"无奈":0,"感激":5,"探秘感":7,"逗趣感":7,"惊喜":44},"风味辨识度":{"失望":57,"愉悦":85,"分享欲":30,"掌控感":0,"畅爽":37,"无奈":4,"感激":4,"探秘感":6,"逗趣感":14,"惊喜":52},"价格感知":{"失望":74,"愉悦":108,"分享欲":37,"掌控感":2,"畅爽":12,"无奈":15,"感激":12,"探秘感":14,"逗趣感":23,"惊喜":48},"饮后舒适度":{"失望":11,"愉悦":6,"分享欲":10,"掌控感":0,"畅爽":2,"无奈":0,"感激":1,"探秘感":2,"逗趣感":4,"惊喜":2},"场景适配度":{"失望":13,"愉悦":18,"分享欲":10,"掌控感":0,"畅爽":9,"无奈":5,"感激":0,"探秘感":8,"逗趣感":8,"惊喜":15},"适合送礼":{"失望":4,"愉悦":5,"分享欲":8,"掌控感":0,"畅爽":2,"无奈":3,"感激":2,"探秘感":0,"逗趣感":1,"惊喜":6},"包装颜值":{"失望":1,"愉悦":3,"分享欲":4,"掌控感":0,"畅爽":2,"无奈":2,"感激":0,"探秘感":5,"逗趣感":2,"惊喜":3},"低GI血糖友好":{"失望":5,"愉悦":6,"分享欲":1,"掌控感":0,"畅爽":1,"无奈":0,"感激":0,"探秘感":2,"逗趣感":2,"惊喜":2},"高品质":{"失望":4,"愉悦":1,"分享欲":0,"掌控感":1,"畅爽":2,"无奈":3,"感激":2,"探秘感":1,"逗趣感":2,"惊喜":13},"佐餐搭配性":{"失望":14,"愉悦":12,"分享欲":10,"掌控感":1,"畅爽":2,"无奈":2,"感激":0,"探秘感":0,"逗趣感":2,"惊喜":8},"即食便捷性":{"失望":1,"愉悦":0,"分享欲":1,"掌控感":0,"畅爽":1,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":1},"多规格选择":{"失望":0,"愉悦":0,"分享欲":1,"掌控感":0,"畅爽":0,"无奈":0,"感激":0,"探秘感":0,"逗趣感":0,"惊喜":0}},"attr_top_notes":{"健康轻负担":[{"note_id":"","note_url":"","image_url":"","text":"标题：均价9.9r‼️k咖啡0糖生椰拿铁测评🔥低卡好喝 正文：🤩本咖啡星人的快乐尊滴来了～本来天天喝拿铁都很担心热量问题‼️现在直接出了个0糖生椰拿铁☕️\n热量","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：一个建议:别在黑咖啡上消耗太多money! 正文：\n黑咖啡/黑咖啡测评/黑咖啡推荐平价/黑咖啡推荐不酸/黑咖啡提神/黑咖啡学生党/好喝的黑咖啡\n姐妹们平时","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：谁懂啊❗️香柠椰青冰美式☕️好喝到起飞啦 正文：夏日里清爽好喝的咖啡☕️\n定是少不了香柠椰青冰美式的✨\n-\n柠檬汁+椰子水+三顿半大小系列浓缩咖啡液\n-\n","emotion":"惊喜","exposure":0}],"口感顺滑度":[{"note_id":"","note_url":"","image_url":"","text":"标题：均价9.9r‼️k咖啡0糖生椰拿铁测评🔥低卡好喝 正文：🤩本咖啡星人的快乐尊滴来了～本来天天喝拿铁都很担心热量问题‼️现在直接出了个0糖生椰拿铁☕️\n热量","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：减肥：每天一杯人生拿铁☕️ 正文：沃尔玛牛奶加摩可纳冷萃8号深度烘焙咖啡好喝\n咖啡味道很浓，喜欢咖啡味淡的不要满满一整勺\n1.直接用微波炉加热 纯牛奶 我","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：这杯咖啡，藏着破案关键！ 正文：终于等到你～库迪和名柯联名终于来辣！\n咖啡续满，推理启动！神秘维也纳系列咖啡全新上线协助探案😎\n海盐创新“可盐可甜”配方，","emotion":"分享欲","exposure":0}],"风味辨识度":[{"note_id":"","note_url":"","image_url":"","text":"标题：均价9.9r‼️k咖啡0糖生椰拿铁测评🔥低卡好喝 正文：🤩本咖啡星人的快乐尊滴来了～本来天天喝拿铁都很担心热量问题‼️现在直接出了个0糖生椰拿铁☕️\n热量","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：减肥：每天一杯人生拿铁☕️ 正文：沃尔玛牛奶加摩可纳冷萃8号深度烘焙咖啡好喝\n咖啡味道很浓，喜欢咖啡味淡的不要满满一整勺\n1.直接用微波炉加热 纯牛奶 我","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：空腹爬楼梯减肥的正确打开方式，新手友好版 正文：🏋今日运动：空腹爬楼100层+周六野20分钟体态拉伸\n🍚关于饮食：\n早餐：半根玉米+两个鸡蛋\n午餐：一个双","emotion":"失望","exposure":0}],"价格感知":[{"note_id":"","note_url":"","image_url":"","text":"标题：一个建议:别在黑咖啡上消耗太多money! 正文：\n黑咖啡/黑咖啡测评/黑咖啡推荐平价/黑咖啡推荐不酸/黑咖啡提神/黑咖啡学生党/好喝的黑咖啡\n姐妹们平时","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：一个不小心买多椰子水啦~ 正文：纯纯的椰子脑袋~看到椰子水就买，一不注意买了好多种牌子。\n📍菲诺椰子水 \n超级甜，不是纯椰子水，小孩子爱喝，真的超级甜\n\n","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：墨西哥城🇲🇽：五天四晚的短暂一瞥 正文：旅游攻略相关的内容都在图里，于是谈谈别的吧。\n我自己本科学的是西班牙语（纯纯地学语言文学文化，没有怎么外语+1哈哈","emotion":"感激","exposure":0}],"饮后舒适度":[{"note_id":"","note_url":"","image_url":"","text":"标题：拿下瑞幸❌大闹天宫所有周边饮品 正文：今天一早冲瑞幸店里发现并没有延迟，点了3个套餐，拿完所有周边，至此瑞幸❌大闹天宫三周的所有周边已经全部齐了，值得好评","emotion":"分享欲","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：西安吃喝玩乐超全攻略分享day2 正文：嗨👋宝宝们，欢迎来到小桃🍑的大四生活plog\n——————————————————\n西安之旅第二天的吃喝玩乐攻略来","emotion":"分享欲","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：纯电车周末两天自驾草原（纯开车版） 正文：北京出发周末两天自驾北疆最美公路热阿线达达线，路上停停拍拍照，景区一个没去，主打一个嘎嘎踩油门[棒r]75度电池","emotion":"活力感","exposure":0}],"场景适配度":[{"note_id":"","note_url":"","image_url":"","text":"标题：星巴克咖啡师出差日记，初次体验零下33度 正文：2025年第一个出差vlog来啦！！！\n🥳\n今天想跟大家分享下，星巴克打工人这次去的海尔拉，一个零下33度","emotion":"无奈","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：瑞瑞新品~冻冻生椰拿铁快去喝❗️快去喝 正文：瑞幸生椰拿铁4⃣️周年啦\n近期出了新品❤️冻冻生椰拿铁\n椰青冻~吸起来滑溜溜的\n0脂低卡~减肥人士放心冲\n\t","emotion":"安心感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：液断幸福感饮品总结｜好喝无广‼️（已⬇️20斤） 正文：冬天喝热热的饮品真的超幸福！！\n#液断[话题]# #减脂日记[话题]# #一天吃什么[话题]# #","emotion":"愉悦","exposure":0}],"适合送礼":[{"note_id":"","note_url":"","image_url":"","text":"标题：我在🇨🇳买这个！ 正文：🇨🇳🫶🏻我最满意的手信…\n\t\n好香的咖啡☕️ 喝完齿间留香💕朋友们都说luckin 咖啡好好喝 …\n我逛超市，居然被我遇到，而且是","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：抹茶爱好者测评——去日本买什么 正文：图一是买回来了的，图二是看到但是没有买的，价格上面有，供参考。图四图五是一个东西，卸妆油，同事推荐买回来还没来得及用","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：25岁｜月入1w+｜最好的状态是未来可期 正文：‘’\n早上好 又是被工作叫醒的一天\n昨晚写稿熬了个大夜\n早上醒来困得狂打哈欠\n刚好前两天入的雀巢咖啡x三丽","emotion":"软萌感","exposure":0}],"包装颜值":[{"note_id":"","note_url":"","image_url":"","text":"标题：深圳｜终于喝到blue bottle啦🫙🩵 正文：📍bluebottlecoffee蓝瓶咖啡(万象天地店)\n📝我们点的【新奥尔良式咖啡雪融+关山樱花拿铁】","emotion":"欣赏感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：plog月入四位数，但一半都花在道具上...值吗 正文：做plog博主第5个月，月收入已经稳定在4位数，但是仔细一算账...道具+场景费花了近一半！可谓是","emotion":"失望","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：我终于悟了❗普通女孩裸辞创业的第三个月 正文：记住一句话：有人买就绝对有需求，市场是不会错的！\n#创业[话题]# #睡衣[话题]# #我的创业日记[话题]","emotion":"分享欲","exposure":0}],"低GI血糖友好":[{"note_id":"","note_url":"","image_url":"","text":"标题：升糖测试是无效的？那我所有的测试算我太闲 正文：你说的没错，每个人吃同样的食物，受很多因素的影响，不可能每次都一样。\n\t\n哪怕是喝的速度不同，血糖升幅也不","emotion":"安心感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：谁还能比我更爱喝库迪啊！留下你的库迪top1 正文：23年初的时候我还很鄙夷库迪，没想到23年下半年就真香了，之后几乎很少喝瑞幸，尤其是有同款的情况下我都","emotion":"失落","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：库迪的这款咖啡简直是减脂期的神！ 正文：库迪的几款经典新品真是超级好喝～每次不知道喝什么就会来点一杯～这是最近的新宠——纯粹燕麦拿铁！冰 不另外加糖 备注","emotion":"逗趣感","exposure":0}],"高品质":[{"note_id":"","note_url":"","image_url":"","text":"标题：世界咖啡节来啦❗️品尝全世界的匠心咖啡☕️ 正文：不用出国✨不用出沪🌠\n在太古汇北广场就可品尝到全球各地咖啡☕️\n从今天起，连续5天2024世界咖啡文化节","emotion":"欣赏感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：探｜best50 咖啡烘豆商 kawa 正文：巴黎探店精品咖啡馆☕️kawa best50？\n\n[微笑r]到店体验\n先点了两杯 一个很妖的低因美式（巨酸）","emotion":"失望","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：库迪咖啡 正文：铂金精品美式（冰+不额外加糖+奶 ）\n跟喝洗锅水一样，味道很淡很淡，下次不点了[捂脸r]\n#不额外加糖[话题]# #冰美式[话题]# #库","emotion":"欣赏感","exposure":0}],"佐餐搭配性":[{"note_id":"","note_url":"","image_url":"","text":"标题：180|85kg大鱼大肉吃多了？来杯黑咖啡吧 正文：春节期间大鱼大肉吃多了，来杯黑咖啡解解腻。\n\t\n今天整理了一下自己的咖啡后宫团，拿出来分享给大家。口感","emotion":"分享欲","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：ole的法式忌威廉芝士包都给我狠狠复烤❗️ 正文：一直都没有找到打开它的正确方式🤦🤦🤦\n直到今天才get到冷冻后的复烤真的yyds\n烤箱170度5分钟左右","emotion":"愉悦","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：中国医科大学之一日三餐吃什么 正文：p2 偶尔改善生活，点了枕水江南的外卖，线下去店里吃过，他家的红烧肉是甜口的，很南方做法，我喜欢，不过吃多容易腻，我特","emotion":"遗憾","exposure":0}],"即食便捷性":[{"note_id":"","note_url":"","image_url":"","text":"标题：海口鹏晖kfc👋 正文：好累啊啊啊躺了一整天爬起来整理了图片，一些杂七杂八的图片还有p图，感谢给我吧唧托（一直不知道为什么这种贴纸不会弯，解决了我的困惑哈","emotion":"困惑感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：夏天自驾遛狗的天花板 正文：如果说在浙江夏天有带狗玩水的天花板，\n那么一定是在杨梅上市的时候去一趟淡竹仙居，\n天不冷不热，特别适合开着车🚗\n带着狗🐕游走在","emotion":"松弛感","exposure":0},{"note_id":"","note_url":"","image_url":"","text":"标题：📣冻干咖啡测评✔️1分钟get现磨咖啡口感⁉️ 正文：我的宝藏咖啡品牌😍\n摩可纳新出了这种「便携装」的咖啡，小巧又方便！\n\t\n▪️5号中度烘焙✔️\n冻干颗","emotion":"惊喜","exposure":0}],"多规格选择":[{"note_id":"","note_url":"","image_url":"","text":"标题：皮爷太妃糖 正文：这次买了分享装\n过年可以和家人一起吃[吧唧r][吧唧r]\n#太妃糖[话题]# #皮爷咖啡[话题]# #皮爷咖啡海盐太妃糖[话题]# 音频","emotion":"分享欲","exposure":0}]},"brand_top":{"肯德基":{"风味辨识度":30,"口感顺滑度":22,"价格感知":18,"健康轻负担":13,"场景适配度":7,"佐餐搭配性":4,"包装颜值":3,"饮后舒适度":3},"星巴克":{"价格感知":165,"健康轻负担":90,"风味辨识度":78,"口感顺滑度":58,"场景适配度":25,"高品质":24,"适合送礼":22,"佐餐搭配性":18},"瑞幸咖啡":{"风味辨识度":147,"健康轻负担":117,"价格感知":112,"口感顺滑度":70,"场景适配度":45,"饮后舒适度":26,"佐餐搭配性":22,"低GI血糖友好":11},"COSTA":{"价格感知":39,"风味辨识度":20,"口感顺滑度":11,"高品质":11,"场景适配度":8,"适合送礼":4,"佐餐搭配性":4,"饮后舒适度":4},"摩可纳":{"价格感知":22,"口感顺滑度":14,"风味辨识度":11,"场景适配度":5,"健康轻负担":3,"高品质":2,"佐餐搭配性":2,"即食便捷性":1},"三顿半":{"价格感知":8,"风味辨识度":3,"适合送礼":3,"健康轻负担":2,"场景适配度":2,"口感顺滑度":2,"高品质":2,"包装颜值":1},"库迪咖啡":{"口感顺滑度":56,"健康轻负担":54,"价格感知":40,"风味辨识度":37,"场景适配度":16,"高品质":15,"佐餐搭配性":8,"饮后舒适度":5},"幸运咖":{"风味辨识度":12,"口感顺滑度":7,"价格感知":3,"健康轻负担":3,"佐餐搭配性":3,"高品质":2,"场景适配度":1,"饮后舒适度":1},"皮爷咖啡":{"风味辨识度":14,"价格感知":10,"口感顺滑度":10,"场景适配度":6,"高品质":3,"健康轻负担":2,"佐餐搭配性":1,"多规格选择":1},"古茗":{"风味辨识度":19,"口感顺滑度":18,"健康轻负担":17,"价格感知":15,"场景适配度":5,"佐餐搭配性":5,"高品质":3,"饮后舒适度":2},"雀巢咖啡":{"价格感知":31,"口感顺滑度":31,"健康轻负担":29,"风味辨识度":18,"适合送礼":15,"场景适配度":5,"高品质":5,"包装颜值":5},"麦当劳":{"风味辨识度":16,"价格感知":11,"健康轻负担":10,"口感顺滑度":6,"佐餐搭配性":3,"饮后舒适度":1},"M Stand":{"风味辨识度":7,"口感顺滑度":3,"价格感知":3,"低GI血糖友好":1,"佐餐搭配性":1,"健康轻负担":1},"Nespresso":{"风味辨识度":3,"价格感知":3,"口感顺滑度":2,"适合送礼":2,"场景适配度":1,"即食便捷性":1},"G7 COFFEE":{"价格感知":7,"健康轻负担":5,"高品质":3,"口感顺滑度":3,"风味辨识度":2,"低GI血糖友好":2,"适合送礼":2,"饮后舒适度":1},"MANNER COFFEE":{"价格感知":10,"口感顺滑度":6,"风味辨识度":6,"低GI血糖友好":3,"饮后舒适度":2,"场景适配度":2,"健康轻负担":2,"高品质":1},"雀巢":{"口感顺滑度":3,"风味辨识度":3,"价格感知":3,"健康轻负担":2,"佐餐搭配性":1,"适合送礼":1,"场景适配度":1},"永璞":{"价格感知":8,"风味辨识度":5,"口感顺滑度":4,"场景适配度":4,"健康轻负担":3,"饮后舒适度":2,"即食便捷性":1,"佐餐搭配性":1}},"brand_fa_week_exp":{"肯德基":{"健康轻负担":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"包装颜值":{"":0.0},"价格感知":{"":0.0},"即食便捷性":{"":0.0},"饮后舒适度":{"":0.0},"佐餐搭配性":{"":0.0},"场景适配度":{"":0.0},"低GI血糖友好":{"":0.0}},"星巴克":{"价格感知":{"":0.0},"健康轻负担":{"":0.0},"场景适配度":{"":0.0},"饮后舒适度":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"高品质":{"":0.0},"适合送礼":{"":0.0},"佐餐搭配性":{"":0.0},"低GI血糖友好":{"":0.0},"包装颜值":{"":0.0}},"瑞幸咖啡":{"饮后舒适度":{"":0.0},"价格感知":{"":0.0},"风味辨识度":{"":0.0},"适合送礼":{"":0.0},"口感顺滑度":{"":0.0},"健康轻负担":{"":0.0},"场景适配度":{"":0.0},"低GI血糖友好":{"":0.0},"佐餐搭配性":{"":0.0},"包装颜值":{"":0.0},"高品质":{"":0.0}},"COSTA":{"价格感知":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"高品质":{"":0.0},"适合送礼":{"":0.0},"佐餐搭配性":{"":0.0},"饮后舒适度":{"":0.0},"健康轻负担":{"":0.0},"场景适配度":{"":0.0},"包装颜值":{"":0.0}},"摩可纳":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"价格感知":{"":0.0},"场景适配度":{"":0.0},"健康轻负担":{"":0.0},"即食便捷性":{"":0.0},"高品质":{"":0.0},"佐餐搭配性":{"":0.0},"低GI血糖友好":{"":0.0},"适合送礼":{"":0.0}},"三顿半":{"健康轻负担":{"":0.0},"价格感知":{"":0.0},"场景适配度":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"高品质":{"":0.0},"适合送礼":{"":0.0},"包装颜值":{"":0.0}},"库迪咖啡":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"健康轻负担":{"":0.0},"价格感知":{"":0.0},"场景适配度":{"":0.0},"低GI血糖友好":{"":0.0},"高品质":{"":0.0},"佐餐搭配性":{"":0.0},"饮后舒适度":{"":0.0},"包装颜值":{"":0.0}},"幸运咖":{"风味辨识度":{"":0.0},"价格感知":{"":0.0},"口感顺滑度":{"":0.0},"健康轻负担":{"":0.0},"佐餐搭配性":{"":0.0},"高品质":{"":0.0},"场景适配度":{"":0.0},"饮后舒适度":{"":0.0},"包装颜值":{"":0.0}},"皮爷咖啡":{"价格感知":{"":0.0},"风味辨识度":{"":0.0},"场景适配度":{"":0.0},"口感顺滑度":{"":0.0},"健康轻负担":{"":0.0},"佐餐搭配性":{"":0.0},"多规格选择":{"":0.0},"包装颜值":{"":0.0},"适合送礼":{"":0.0},"高品质":{"":0.0}},"古茗":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"健康轻负担":{"":0.0},"价格感知":{"":0.0},"包装颜值":{"":0.0},"场景适配度":{"":0.0},"佐餐搭配性":{"":0.0},"饮后舒适度":{"":0.0},"高品质":{"":0.0},"低GI血糖友好":{"":0.0},"适合送礼":{"":0.0}},"雀巢咖啡":{"健康轻负担":{"":0.0},"价格感知":{"":0.0},"适合送礼":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"场景适配度":{"":0.0},"佐餐搭配性":{"":0.0},"高品质":{"":0.0},"即食便捷性":{"":0.0},"低GI血糖友好":{"":0.0},"包装颜值":{"":0.0},"饮后舒适度":{"":0.0}},"麦当劳":{"风味辨识度":{"":0.0},"价格感知":{"":0.0},"健康轻负担":{"":0.0},"佐餐搭配性":{"":0.0},"口感顺滑度":{"":0.0},"饮后舒适度":{"":0.0}},"M Stand":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"低GI血糖友好":{"":0.0},"佐餐搭配性":{"":0.0},"价格感知":{"":0.0},"健康轻负担":{"":0.0}},"Nespresso":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"价格感知":{"":0.0},"场景适配度":{"":0.0},"适合送礼":{"":0.0},"即食便捷性":{"":0.0}},"G7 COFFEE":{"价格感知":{"":0.0},"风味辨识度":{"":0.0},"健康轻负担":{"":0.0},"高品质":{"":0.0},"口感顺滑度":{"":0.0},"低GI血糖友好":{"":0.0},"适合送礼":{"":0.0},"饮后舒适度":{"":0.0},"场景适配度":{"":0.0}},"MANNER COFFEE":{"价格感知":{"":0.0},"口感顺滑度":{"":0.0},"低GI血糖友好":{"":0.0},"高品质":{"":0.0},"风味辨识度":{"":0.0},"饮后舒适度":{"":0.0},"场景适配度":{"":0.0},"健康轻负担":{"":0.0}},"雀巢":{"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"价格感知":{"":0.0},"佐餐搭配性":{"":0.0},"健康轻负担":{"":0.0},"适合送礼":{"":0.0},"场景适配度":{"":0.0}},"永璞":{"价格感知":{"":0.0},"口感顺滑度":{"":0.0},"风味辨识度":{"":0.0},"饮后舒适度":{"":0.0},"健康轻负担":{"":0.0},"场景适配度":{"":0.0},"即食便捷性":{"":0.0},"佐餐搭配性":{"":0.0},"适合送礼":{"":0.0},"包装颜值":{"":0.0},"高品质":{"":0.0}}}}};</script><script>
+var D=window.__D;
+var WEEKS=D.meta.weeks;
+var WL=WEEKS.map(function(w){
+  // 支持 "2025-06-01" 或 "2025年第5周" 两种格式
+  if(w.match(/^\d{4}-\d{2}/)){return w.slice(0,7);}
+  return w.replace('20','').replace('年第','W').replace('周','');
+});
+var EMOTIONS=D.overview.top_emotions;
+var DIST=D.overview.emotion_dist;       // 曝光加权 SOV%（新字段）
+var COUNTS=D.overview.emotion_counts||{};  // 条数（用于展示）
+var POS=D.meta.positive_emotions;
+var NEG=D.meta.negative_emotions;
+var BRANDS=D.meta.brands;
+var EM_COLORS=['#6366f1','#f59e0b','#10b981','#f87171','#4ade80','#38bdf8','#e879f9','#fb923c','#34d399','#a78bfa','#fbbf24','#60a5fa','#f472b6','#c084fc','#818cf8'];
+var BRAND_COLORS=['#6366f1','#f59e0b','#10b981','#f87171','#a78bfa'];
+
+function isPos(e){return POS.indexOf(e)>=0;}
+function isNeg(e){return NEG.indexOf(e)>=0;}
+function ec(e){return isPos(e)?'#4ade80':isNeg(e)?'#f87171':'#94a3b8';}
+function fmt(n){if(n>=1e8)return (n/1e8).toFixed(1)+'亿';if(n>=1e4)return (n/1e4).toFixed(1)+'w';return String(n);}
+function fmtM(n){return n>=1000?(n/1000).toFixed(1)+'B':(n.toFixed(1)+'M');}
+function gc(id){var el=document.getElementById(id);return echarts.getInstanceByDom(el)||echarts.init(el);}
+
+function go(id,btn){
+  document.querySelectorAll('.tp').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.tb').forEach(function(el){el.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(function(){
+    if(id==='t1')renderT1();
+    if(id==='t2')renderT2();
+    if(id==='t3')renderT3();
+    if(id==='t4')renderT4();
+    if(id==='t5')renderT5();
+    if(id==='t6')renderT6();
+    if(id==='t7')renderT7();
+    if(id==='t8')renderT8();
+  },50);
+}
+
+// 情绪色盘（固定，供所有情绪复用）
+var EMOTION_PALETTE={
+  '畅爽':'#f59e0b','欣赏感':'#e879f9','惊喜':'#fbbf24','感动':'#f87171',
+  '期待感':'#38bdf8','逗趣感':'#4ade80','愉悦':'#34d399','狂喜':'#fb923c',
+  '迷恋感':'#a78bfa','探秘感':'#22d3ee','感激':'#86efac','好感':'#fcd34d',
+  '放松感':'#67e8f9','期待':'#93c5fd','认同感':'#c4b5fd','信赖感':'#6ee7b7',
+  '急迫感':'#fca5a5','崇拜感':'#f9a8d4','成就感':'#bbf7d0','庆幸感':'#fed7aa',
+  '启迪感':'#ddd6fe','骄傲':'#fde68a','激励感':'#99f6e4','羡慕感':'#bae6fd',
+};
+var _palette_keys=Object.keys(EMOTION_PALETTE);
+var _extra_colors=['#e2e8f0','#94a3b8','#64748b','#475569','#a3e635','#fb7185','#38bdf8'];
+function emotionColor(e){
+  return EMOTION_PALETTE[e]||_extra_colors[_palette_keys.indexOf(e)%_extra_colors.length]||'#94a3b8';
+}
+
+// 情绪极性集合
+var POSITIVE_SET=new Set([
+  // 核心正面
+  "惊喜","狂喜","愉悦","好感","迷恋感","感激","逗趣感","期待感","探秘感",
+  "放松感","松弛感","急迫感","崇拜感","欣赏感","认同感","信赖感","成就感","庆幸感",
+  "启迪感","骄傲","骄傲感","激励感","信念感","被支持感","放心感","羡慕感","畅爽","感动",
+  // v4 新增正面
+  "心动感","软萌感","肆意感","自由感",
+  // 之前错误归到负面的正面情绪
+  "安心感","分享欲","共情感","小确幸","仪式感","优越感","依恋感","归属感",
+  "迷恋感","精致感","怀旧感","陪伴感","温暖/关爱感","活力感","沉醉感","微醺感",
+  "治愈感","掌控感","自信","满足感"
+]);
+// Tab4 正面核心5个 + 负面核心5个（分两栏展示）
+// 品牌指定核心情绪（build_data --core-emotions 传入）硬锁第一位，再用数据 Top 补齐
+var CORE_POS=(function(){
+  var sorted=Object.entries(DIST).sort(function(a,b){return b[1]-a[1];});
+  var pinned=(D.core_emotions||[]).filter(function(e){return POSITIVE_SET.has(e);});
+  // auto 只选有 emotion_sources 配置且切角数>0 的情绪，保证深挖有内容
+  var sources=D.emotion_sources||{};
+  var auto=sorted.filter(function(kv){
+    var e=kv[0];
+    return POSITIVE_SET.has(e)&&pinned.indexOf(e)<0&&sources[e]&&sources[e].length>0;
+  }).map(function(kv){return kv[0];});
+  // 兜底：如果有切角不足，允许加入无切角但有关键词的情绪
+  var fallback=sorted.filter(function(kv){
+    var e=kv[0];
+    return POSITIVE_SET.has(e)&&pinned.indexOf(e)<0&&auto.indexOf(e)<0;
+  }).map(function(kv){return kv[0];});
+  return pinned.concat(auto).concat(fallback).slice(0,Math.max(5, pinned.length));
+})();
+var CORE_NEG=(function(){
+  var sorted=Object.entries(DIST).sort(function(a,b){return b[1]-a[1];});
+  var pinned=(D.core_emotions||[]).filter(function(e){return !POSITIVE_SET.has(e);});
+  var sources=D.emotion_sources||{};
+  var auto=sorted.filter(function(kv){
+    var e=kv[0];
+    return !POSITIVE_SET.has(e)&&pinned.indexOf(e)<0&&sources[e]&&sources[e].length>0;
+  }).map(function(kv){return kv[0];});
+  var fallback=sorted.filter(function(kv){
+    var e=kv[0];
+    return !POSITIVE_SET.has(e)&&pinned.indexOf(e)<0&&auto.indexOf(e)<0;
+  }).map(function(kv){return kv[0];});
+  return pinned.concat(auto).concat(fallback).slice(0,Math.max(5, pinned.length));
+})();
+var CORE_EMOTIONS=CORE_POS.concat(CORE_NEG);
+var CORE_COLORS=(function(){
+  var m={};
+  CORE_EMOTIONS.forEach(function(e){m[e]=emotionColor(e);});
+  return m;
+})();
+
+// 情绪定义关键词从数据动态读取（build_data.py 输出 emotion_keywords）
+var EMOTION_KEYWORDS = D.emotion_keywords || {};
+var EMOTION_SOURCES  = D.emotion_sources  || {};
+
+// 情绪定义文本（来自食饮Attributes v4，全量覆盖）
+var EMOTION_DEF = {
+  '愉悦': '美食推荐/种草；极致味觉表达（好吃/美味/绝了）；甜蜜幸福感；爱吃/真好吃的情感宣泄；日常干饭的快乐',
+  '惊喜': '隐藏吃法/隐藏菜单；没想到/居然的反差感；宝藏店铺发现；传闻中的美食打卡',
+  '狂喜': '强烈的高峰情绪，赢了/出乎意料的极致惊喜',
+  '畅爽': '饮品解渴场景；夏日清凉美食；大快朵颐的吃播；吃爽/喝爽的满足感表达',
+  '安心感': '没有骗你的保证；一点信任的建立；安心靠谱的表达；配料表干净/大品牌信赖',
+  '放松感': '压力卸下后的舒展平静；去紧绷状态；休闲/下班/周末场景；卸下班味',
+  '松弛感': '不刻意、不费力、不紧绷的生活态度；随性自然地享受当下，无需仪式感也能自得其乐',
+  '治愈感': '美味食物带来的温和、持久的正向情绪，抚慰身心；情绪低落后的慰藉修复',
+  '感激': '对品牌、自然、赠礼方产生的感谢情绪；包含宏观感恩与具体感激；被宠到了/太贴心了',
+  '分享欲': '主动分享/种草/推荐给他人；快告诉你们/快去买；社交传播冲动',
+  '共情感': '谁懂/你们懂的共鸣；终于有人说了/同感；有共鸣互动表达',
+  '探秘感': '对未知风味、奇葩吃法、地域特色产生的好奇与探索欲；第一次体验/打开新世界',
+  '逗趣感': '搞笑娱乐内容；街头随机互动；盲盒抽签玩法；邪修创意料理；抽象搞笑表达',
+  '迷恋感': '对某款产品产生持续、深度的喜爱与着迷；上头了/爱了爱了/停不下来',
+  '欣赏感': '对产品颜值、工艺、创意的欣赏与赞叹',
+  '成就感': 'DIY自制美食；解锁新技能；搞定事情；还原经典味道；有手就会教程',
+  '掌控感': '通过精准选择营养成分实现对自己生活的掌控；成分党/配料表词汇',
+  '优越感': '与他人比较后的优势感；高端/稀缺选择；天花板/遥遥领先/懂行',
+  '仪式感': '通过特定过程、精美摆盘赋予日常饮食特殊意义；值得纪念/郑重时刻',
+  '小确幸': '日常生活中微小而确定的幸福；生活小美好/今日份快乐',
+  '依恋感': '对特定产品长期持续的喜爱；认准这个/戒不掉/长情陪伴',
+  '归属感': '家的味道/妈妈做的菜；过年年夜饭；小时候童年回忆；游子想家',
+  '怀旧感': '对过去时光、记忆的情感联结；小时候的味道/老味道/童年回忆',
+  '精致感': '精致生活的代表；精致早餐/酸奶碗/拿铁拉花；精致日常',
+  '满足感': '口感和营养双重满足带来的愉悦感；过瘾/一口满足/需求被满足',
+  '心动感': '被外观、色彩、概念瞬间触发，产生"一见钟情"式的心动与渴望；DNA动了/一眼心动',
+  '软萌感': '外观或造型带来的柔软、可爱、治愈系感受，激发保护欲与亲近感；哈基米/奶呼呼/糯叽叽',
+  '肆意感': '抛开热量与身材顾虑，放纵享乐的痛快情绪，带有短暂脱离自律的叛逆快感；放飞自我/热量炸弹也要吃',
+  '自由感': '无负担地享受；零糖酸奶、轻负担冰淇淋带来的自由感；想吃就吃不怕胖',
+  '活力感': '乳品作为营养来源带来的能量感和生命力；元气满满/有劲儿/满电出发',
+  '期待感': '对未来事件的正向向往；种草了/等不及了/心心念念',
+  '急迫感': '强烈立刻行动的冲动；赶紧去买/冲冲冲/必须买',
+  '认同感': '与群体/价值观产生共鸣；就是这种感觉/说出我心声了/懂我',
+  '沉醉感': '沉浸在浓郁口感/香气中的享受；香到飘了/被迷住了/回味无穷',
+  '微醺感': '浅醉状态带来的飘逸朦胧感，酒精触发的独特情绪体验（酒饮专属）',
+  '救赎感': '疲惫或饥饿状态下，便捷食物带来的省事、得救的感觉；懒人福音/打工人必备',
+  '温暖/关爱感': '来自他人关怀或主动照顾家人产生的温暖情感联结；暖心/给爸妈买的/好贴心',
+  '感动': '被触动情感涌现；泪目/破防了/哽咽；有具体感动事件',
+  '失望': '产品/体验与预期不符带来的落差感；踩雷了/名不副实/后悔买了',
+  '遗憾': '错过可惜的场景；卖完了/没抢到/早知道就买了',
+  '怀疑感': '对产品真实性、效果、成分的质疑',
+  '负罪感': '面对高热量、不健康成分时产生的身材焦虑或健康担忧；罪恶感/不敢多吃',
+  '无奈': '服了/无语/绝了表达；不知道怎么办；翻车搞砸场景；算了/没办法',
+  '纠结感': '到底值不值测评；A vs B对比；哪个更好；选择困难',
+  '倦怠感': '对某事物或状态产生厌倦；腻了/烦了/不想再试了',
+  '生气': '对产品质量或服务的愤怒反应；气死了/太过分了/投诉',
+  '烦躁感': '低强度持续烦闷；烦死了/抓狂/不知道怎么开心',
+  '担心感': '对食品安全、成分健康、是否适合特定人群的担忧',
+  '焦虑感': '救命/怎么办场景；选择困难症/怕踩雷；对不确定未来的持续担忧',
+  '挫败感': '新品尝试失败、菜谱复刻失败；翻车了/避雷/跟想象不一样',
+};
+
+function initStats(){
+  var tot=D.meta.total_notes;
+  var expM=D.meta.total_exposure_m||0;
+  document.getElementById('s-total').textContent=tot.toLocaleString();
+  document.getElementById('s-exp').textContent=expM+'M';
+  var sc=DIST['惊喜']||0;
+  document.getElementById('s-surprise').textContent=sc.toFixed(1)+'%';
+  // 6大核心情绪总 SOV
+  var coreSOV=CORE_EMOTIONS.reduce(function(a,e){return a+(DIST[e]||0);},0);
+  document.getElementById('s-pos').textContent=coreSOV.toFixed(1)+'%';
+}
+
+// ── Tab1: 情绪分布（左：曝光SOV% / 右：条数，各自独立图，正面+负面全展示） ──
+function makeBarChart(chartId, sortByExp){
+  var ch=gc(chartId);
+  var es=EMOTIONS.slice().sort(function(a,b){
+    return sortByExp?(DIST[b]||0)-(DIST[a]||0):(COUNTS[b]||0)-(COUNTS[a]||0);
+  });
+  var vals=es.map(function(e){return sortByExp?+(DIST[e]||0).toFixed(2):(COUNTS[e]||0);});
+  ch.setOption({backgroundColor:'transparent',grid:{left:72,right:70,top:10,bottom:10},
+    xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,
+      formatter:function(v){return sortByExp?v.toFixed(1)+'%':v;}},
+      splitLine:{lineStyle:{color:'#1e2438'}}},
+    yAxis:{type:'category',data:es,inverse:true,
+      axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    tooltip:{trigger:'axis',formatter:function(p){
+      var e=p[0].name;
+      return e+'<br>曝光SOV: <b>'+(DIST[e]||0).toFixed(2)+'%</b><br>笔记数: <b>'+(COUNTS[e]||0)+'</b>条';
+    }},
+    series:[{type:'bar',barMaxWidth:22,
+      data:es.map(function(e,i){
+        var isCore=CORE_EMOTIONS.indexOf(e)>=0;
+        var col=isCore?(CORE_COLORS[e]||'#6366f1'):(isPos(e)?'rgba(74,222,128,.5)':'rgba(248,113,113,.45)');
+        return {value:vals[i],itemStyle:{color:col,borderRadius:[0,3,3,0]}};
+      }),
+      label:{show:true,position:'right',color:'#94a3b8',fontSize:10,
+        formatter:function(p){return sortByExp?p.value.toFixed(1)+'%':p.value;}}
+    }]},true);
+}
+function renderT1(){
+  makeBarChart('t1barExp',true);
+  makeBarChart('t1barCnt',false);
+  t1Week();
+}
+function t1Week(){
+  // 月度趋势：同时展示笔记量（柱）+ 月总曝光（折线右轴）
+  var ch=gc('t1week');
+  var cnts=WEEKS.map(function(w){return D.week_total_cnt[w]||0;});
+  var exps=WEEKS.map(function(w){return +((D.week_total_exp[w]||0)/1e6).toFixed(1);});
+  ch.setOption({backgroundColor:'transparent',grid:{left:46,right:50,top:10,bottom:54},
+    tooltip:{trigger:'axis',formatter:function(params){
+      return WL[params[0].dataIndex]+'<br>笔记: '+params[0].value+'条<br>曝光: '+params[1].value+'M';
+    }},
+    legend:{bottom:0,textStyle:{color:'#8892b0',fontSize:10}},
+    xAxis:{type:'category',data:WL,axisLabel:{color:'#6b7280',fontSize:10,rotate:35}},
+    yAxis:[
+      {type:'value',name:'笔记量',axisLabel:{color:'#6b7280',fontSize:10},splitLine:{lineStyle:{color:'#1e2438'}},nameTextStyle:{color:'#6b7280',fontSize:9}},
+      {type:'value',name:'曝光M',axisLabel:{color:'#fbbf24',fontSize:10},splitLine:{show:false},nameTextStyle:{color:'#fbbf24',fontSize:9}}
+    ],
+    series:[
+      {name:'笔记量',type:'bar',data:cnts,barMaxWidth:22,itemStyle:{color:'rgba(99,102,241,.5)',borderRadius:[3,3,0,0]},yAxisIndex:0},
+      {name:'曝光M',type:'line',data:exps,lineStyle:{color:'#fbbf24',width:2},itemStyle:{color:'#fbbf24'},symbol:'circle',symbolSize:5,yAxisIndex:1}
+    ]});
+}
+
+
+// ── Tab2: Over Time（曝光加权 SOV%） ──
+var t2sel=CORE_EMOTIONS.slice();   // 默认6大核心情绪
+var t2mode='rate';
+var MAX_SEL=8;
+function t2Pills(){
+  var c=document.getElementById('t2pills');
+  c.innerHTML=EMOTIONS.map(function(e){
+    var on=t2sel.indexOf(e)>=0;
+    var isCore=CORE_EMOTIONS.indexOf(e)>=0;
+    var cls=isCore?'core':isPos(e)?'pos':'neg';
+    return '<span class="pill '+cls+' '+(on?'':'off')+'" onclick="t2Toggle(\''+e+'\')">'+e+'</span>';
+  }).join('');
+  document.getElementById('t2count').textContent=t2sel.length;
+}
+function t2Toggle(e){var i=t2sel.indexOf(e);if(i>=0){t2sel.splice(i,1);}else if(t2sel.length<MAX_SEL){t2sel.push(e);}t2Pills();t2Line();t2Heat();}
+function t2Preset(p){
+  if(p==='core'){t2sel=CORE_EMOTIONS.slice();}
+  else if(p==='surprise'){t2sel=['惊喜'];}
+  else if(p==='top5pos'){t2sel=EMOTIONS.filter(isPos).slice(0,5);}
+  else if(p==='top5neg'){t2sel=EMOTIONS.filter(isNeg).slice(0,5);}
+  else{t2sel=EMOTIONS.slice(0,8);}
+  t2Pills();t2Line();t2Heat();
+}
+function setMode(m){
+  t2mode=m;
+  document.getElementById('modeCount').classList.toggle('active',m==='count');
+  document.getElementById('modeRate').classList.toggle('active',m==='rate');
+  document.getElementById('modeExp').classList.toggle('active',m==='exp');
+  t2Line();
+}
+function t2Line(){
+  var ch=gc('t2line');
+  var isRate=t2mode==='rate', isExp=t2mode==='exp';
+  var suffix=isRate?'%':isExp?' M':' 条';
+  ch.setOption({backgroundColor:'transparent',grid:{left:55,right:20,top:30,bottom:60},
+    tooltip:{trigger:'axis',formatter:function(params){
+      var w=WEEKS[params[0].dataIndex];
+      return '<b>'+WL[params[0].dataIndex]+'</b> ('+w+')<br>'+
+        params.map(function(p){return p.seriesName+': '+p.value+suffix;}).join('<br>');
+    }},
+    legend:{bottom:0,textStyle:{color:'#8892b0',fontSize:11},type:'scroll'},
+    xAxis:{type:'category',data:WL,axisLabel:{color:'#6b7280',fontSize:11,rotate:30},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    yAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:11,formatter:function(v){return v+suffix.trim();}},splitLine:{lineStyle:{color:'#1e2438'}}},
+    series:t2sel.map(function(e,i){
+      var eot=D.emotion_over_time[e]||{};
+      var vals=isRate?(eot.rates||[]):isExp?(eot.exposure||[]):(eot.counts||[]);
+      var isCore=CORE_EMOTIONS.indexOf(e)>=0;
+      var col=isCore?(CORE_COLORS[e]||EM_COLORS[i%EM_COLORS.length]):EM_COLORS[i%EM_COLORS.length];
+      var lw=isCore?2.5:1.5;
+      return {name:e,type:'line',data:vals,lineStyle:{color:col,width:lw},
+        itemStyle:{color:col},symbol:'circle',symbolSize:isCore?6:4,smooth:false};
+    })},true);
+}
+function t2Heat(){
+  // 热力图使用曝光加权 SOV%
+  var ch=gc('t2heat');var allE=EMOTIONS;var data=[];var maxV=0;
+  allE.forEach(function(e,ei){
+    WEEKS.forEach(function(w,wi){
+      var wexp=D.week_total_exp[w]||1;
+      var eexp=(D.week_emotion_exp[w]&&D.week_emotion_exp[w][e])||0;
+      var rate=+(eexp/wexp*100).toFixed(1);
+      data.push([wi,ei,rate]);if(rate>maxV)maxV=rate;
+    });
+  });
+  ch.setOption({backgroundColor:'transparent',grid:{left:80,right:90,top:10,bottom:70},
+    xAxis:{type:'category',data:WL,axisLabel:{color:'#8892b0',fontSize:10,rotate:30},splitArea:{show:true,areaStyle:{color:['#1a1d2e','#252a3f']}}},
+    yAxis:{type:'category',data:allE,axisLabel:{color:'#e2e8f0',fontSize:11},splitArea:{show:true}},
+    visualMap:{min:0,max:maxV,calculable:true,inRange:{color:['#1a1d2e','#1e3a5f','#1d4ed8','#6366f1','#a78bfa']},textStyle:{color:'#8892b0'},right:0,top:'center',itemHeight:150},
+    tooltip:{formatter:function(p){return allE[p.data[1]]+' | '+WL[p.data[0]]+'<br>曝光SOV: '+p.data[2]+'%';}},
+    series:[{type:'heatmap',data:data,label:{show:true,color:'#fff',fontSize:9,formatter:function(p){return p.data[2]>0?p.data[2]+'%':'';}}}]});
+}
+function renderT2(){t2Pills();t2Line();t2Heat();}
+
+// ── Tab3: 品牌对比（曝光加权 SOV/TGI） ──
+var t3brands=BRANDS.slice();
+function t3BrandChips(){
+  var c=document.getElementById('t3chips');if(!c)return;
+  c.innerHTML=BRANDS.map(function(b,i){
+    var on=t3brands.indexOf(b)>=0;
+    var col=BRAND_COLORS[i%BRAND_COLORS.length];
+    return '<span class="brand-chip '+(on?'on':'')+'" style="'+(on?'background:'+col+';border-color:'+col+';':'')+'" onclick="t3ToggleBrand(\''+b+'\')">'+b+'</span>';
+  }).join('');
+}
+function t3ToggleBrand(b){
+  var i=t3brands.indexOf(b);
+  if(i>=0){if(t3brands.length>1)t3brands.splice(i,1);}else{t3brands.push(b);}
+  t3BrandChips();t3Charts();
+}
+function t3Charts(){
+  var top=D.overview.top12||D.overview.top_emotions.slice(0,12);
+  // SOV Heatmap（曝光加权 %）
+  var ch1=gc('t3heatmap');var data=[];var maxV=0;
+  BRANDS.forEach(function(b,bi){
+    top.forEach(function(e,ei){
+      var v=(D.sov_matrix[b]&&D.sov_matrix[b][e])||0;
+      data.push([ei,bi,v]);if(v>maxV)maxV=v;
+    });
+  });
+  ch1.setOption({backgroundColor:'transparent',grid:{left:80,right:60,top:10,bottom:60},
+    xAxis:{type:'category',data:top,axisLabel:{color:'#8892b0',fontSize:11,rotate:30},splitArea:{show:true,areaStyle:{color:['#1a1d2e','#252a3f']}}},
+    yAxis:{type:'category',data:BRANDS,axisLabel:{color:'#e2e8f0',fontSize:13},splitArea:{show:true}},
+    visualMap:{min:0,max:maxV,calculable:true,inRange:{color:['#1a1d2e','#4c1d95','#7c3aed','#a78bfa','#c4b5fd']},textStyle:{color:'#8892b0'},right:0,top:'center',itemHeight:100},
+    tooltip:{formatter:function(p){return BRANDS[p.data[1]]+' | '+top[p.data[0]]+'<br>曝光SOV: '+p.data[2]+'%';}},
+    series:[{type:'heatmap',data:data,label:{show:true,color:'#fff',fontSize:10,formatter:function(p){return p.data[2]>0?p.data[2]+'%':''}}}]});
+  // TGI 柱图（>120绿差异化优势，<80红内容缺口）
+  var ch2=gc('t3tgi');
+  ch2.setOption({backgroundColor:'transparent',grid:{left:70,right:20,top:20,bottom:30},
+    tooltip:{trigger:'axis',formatter:function(params){
+      return params[0].name+'<br>'+params.map(function(p){
+        var flag=p.value>=120?'✅差异化优势':p.value<=80?'⚠️内容缺口':'持平';
+        return p.seriesName+': TGI '+p.value+' ('+flag+')';
+      }).join('<br>');
+    }},
+    legend:{top:0,textStyle:{color:'#8892b0',fontSize:11}},
+    xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:11},splitLine:{lineStyle:{color:'#1e2438'}}},
+    yAxis:{type:'category',data:top,axisLabel:{color:'#e2e8f0',fontSize:11}},
+    series:t3brands.map(function(b,i){
+      return {name:b,type:'bar',barMaxWidth:16,
+        data:top.map(function(e){
+          var v=(D.tgi_matrix[b]&&D.tgi_matrix[b][e])||0;
+          return {value:v,itemStyle:{color:v>=120?'#22c55e':v<=80?'#ef4444':BRAND_COLORS[i%BRAND_COLORS.length],borderRadius:[0,3,3,0]}};
+        })};
+    })});
+}
+function renderT3(){t3BrandChips();t3Charts();}
+
+// ── Tab4: 核心情绪深挖（正面5 + 负面5，分两行） ──
+var t4cur=CORE_POS[0]||CORE_NEG[0]||'';
+function initT4Tabs(){
+  var container=document.getElementById('t4tabs');
+  if(!container)return;
+  container.innerHTML='';
+
+  // 正面行
+  var posRow=document.createElement('div');
+  posRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px';
+  var posLabel=document.createElement('span');
+  posLabel.textContent='正面：';
+  posLabel.style.cssText='font-size:11px;color:#4ade80;opacity:.7;flex-shrink:0';
+  posRow.appendChild(posLabel);
+  CORE_POS.forEach(function(e,i){
+    var col=emotionColor(e);
+    var btn=document.createElement('button');
+    var isFirst=(e===t4cur);
+    btn.className='t4tab'+(isFirst?' on':'');
+    btn.setAttribute('data-e',e);
+    btn.textContent=e;
+    if(isFirst){btn.style.background=col;btn.style.borderColor=col;btn.style.color='#fff';}
+    btn.onclick=function(){t4Switch(e,btn);};
+    posRow.appendChild(btn);
+  });
+  container.appendChild(posRow);
+
+  // 负面行
+  var negRow=document.createElement('div');
+  negRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+  var negLabel=document.createElement('span');
+  negLabel.textContent='负面：';
+  negLabel.style.cssText='font-size:11px;color:#f87171;opacity:.7;flex-shrink:0';
+  negRow.appendChild(negLabel);
+  CORE_NEG.forEach(function(e){
+    var col=emotionColor(e);
+    var btn=document.createElement('button');
+    var isFirst=(e===t4cur&&!CORE_POS.length);
+    btn.className='t4tab'+(isFirst?' on':'');
+    btn.setAttribute('data-e',e);
+    btn.textContent=e;
+    if(isFirst){btn.style.background=col;btn.style.borderColor=col;btn.style.color='#fff';}
+    btn.onclick=function(){t4Switch(e,btn);};
+    negRow.appendChild(btn);
+  });
+  container.appendChild(negRow);
+
+  // 更新左边框色
+  var defEl=document.getElementById('t4def');
+  if(defEl&&t4cur)defEl.style.borderLeftColor=emotionColor(t4cur);
+}
+function t4Switch(e,btn){
+  t4cur=e;
+  var col=emotionColor(e);
+  document.querySelectorAll('.t4tab').forEach(function(b){
+    b.classList.remove('on');
+    b.style.background='#252a3f';
+    b.style.borderColor='#2d3a5a';
+    b.style.color='#8892b0';
+  });
+  btn.classList.add('on');
+  btn.style.background=col;
+  btn.style.borderColor=col;
+  btn.style.color='#fff';
+  t4Render();
+}
+function t4Render(){
+  var e=t4cur;
+  var col=emotionColor(e);
+  var eot=D.emotion_over_time[e]||{};
+  var counts=eot.counts||WEEKS.map(function(){return 0;});
+  var rates=eot.rates||WEEKS.map(function(){return 0;});
+  var exps=eot.exposure||WEEKS.map(function(){return 0;});
+  var total=counts.reduce(function(a,c){return a+c;},0);
+  var avgRate=(rates.reduce(function(a,c){return a+c;},0)/Math.max(rates.length,1)).toFixed(2);
+  var maxRateVal=Math.max.apply(null,rates);
+  var maxWeek=WL[rates.indexOf(maxRateVal)];
+  var globalSOV=(DIST[e]||0).toFixed(2);
+
+  document.getElementById('t4title').textContent=e+' 情绪深挖';
+  var defEl=document.getElementById('t4def');
+  if(defEl){
+    defEl.style.borderLeftColor=emotionColor(e);
+    var col=emotionColor(e);
+    var html='';
+
+    // 行0：情绪定义（来自 Attributes v4）
+    var defText=EMOTION_DEF[e];
+    if(defText){
+      html+='<div style="margin-bottom:10px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:6px;">'
+        +'<span style="color:#94a3b8;font-size:11px;margin-right:6px;font-weight:600">定义</span>'
+        +'<span style="color:#cbd5e1;font-size:12px;line-height:1.7">'+defText+'</span>'
+        +'</div>';
+    }
+
+    // 行1：品牌真实高频关键词
+    var kws=EMOTION_KEYWORDS[e];
+    if(kws&&kws.length){
+      html+='<div style="margin-bottom:8px"><span style="color:#6b7280;font-size:11px;margin-right:6px">高频词</span>'
+        +kws.slice(0,8).map(function(k){return '<span style="background:rgba(255,255,255,.07);border-radius:4px;padding:2px 8px;margin:2px 3px;display:inline-block;font-size:12px;color:#cbd5e1">'+k+'</span>';}).join('')
+        +'</div>';
+    }
+
+    // 行2：情绪来源/切角（从该品牌真实UGC归纳，命中率=该场景笔记占比，各场景独立计算可叠加）
+    var srcs=EMOTION_SOURCES[e];
+    if(srcs&&srcs.length){
+      var rgb='255,255,255';
+      var hm=col.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
+      if(hm){rgb=parseInt(hm[1],16)+','+parseInt(hm[2],16)+','+parseInt(hm[3],16);}
+      var top3=srcs.slice(0,3);
+      html+='<div style="margin-top:4px"><span style="color:#6b7280;font-size:11px;margin-right:6px">来源切角</span>'
+        +top3.map(function(s){
+          var barW=Math.max(8,Math.min(s.pct,100)*0.5);
+          return '<span style="display:inline-flex;align-items:center;background:rgba('+rgb+',0.12);'
+            +'border:1px solid rgba('+rgb+',0.3);border-radius:6px;padding:3px 10px;margin:3px 3px;font-size:12px;color:#e2e8f0">'
+            +'<span style="display:inline-block;width:'+barW+'px;height:3px;background:rgba('+rgb+',0.7);border-radius:2px;margin-right:6px"></span>'
+            +s.scene
+            +'<span style="color:'+col+';font-size:11px;font-weight:600;margin-left:6px">'+s.pct+'%</span>'
+            +'</span>';
+        }).join('')
+        +'<span style="color:#4b5563;font-size:10px;margin-left:4px">（各场景独立统计）</span>'
+        +'</div>';
+    } else {
+      // 无 brand_scenes 配置时，用数据驱动自动生成切角（Top 关键词聚类）
+      var kws2=EMOTION_KEYWORDS[e];
+      if(kws2&&kws2.length){
+        html+='<div style="margin-top:4px"><span style="color:#6b7280;font-size:11px;margin-right:6px">内容切角</span>'
+          +'<span style="color:#4b5563;font-size:11px">（基于高频词自动提炼）</span> '
+          +kws2.slice(0,6).map(function(k){
+            return '<span style="background:rgba('+col.replace('#','')+',0.08);border:1px solid rgba(255,255,255,0.1);'
+              +'border-radius:6px;padding:3px 10px;margin:2px 3px;font-size:12px;color:#94a3b8;display:inline-block">'+k+'</span>';
+          }).join('')
+          +'</div>';
+      }
+    }
+    defEl.innerHTML=html||'';
+  }
+  document.getElementById('t4metrics').innerHTML=
+    '<div class="mc"><div class="mv">'+total.toLocaleString()+'</div><div class="ml">笔记总量</div></div>'+
+    '<div class="mc"><div class="mv" style="color:'+col+'">'+globalSOV+'%</div><div class="ml">全期曝光SOV</div></div>'+
+    '<div class="mc"><div class="mv" style="color:#fbbf24">'+maxRateVal.toFixed(2)+'%</div><div class="ml">峰值曝光SOV</div><div class="ms">'+maxWeek+'</div></div>'+
+    '<div class="mc"><div class="mv" style="color:#94a3b8">'+avgRate+'%</div><div class="ml">月均曝光SOV</div></div>';
+
+  // 双轴合并图：柱=曝光M（左轴）+ 折线=SOV%（右轴）
+  var maxE=Math.max.apply(null,exps);
+  var hex=col.replace('#','');
+  var cr=parseInt(hex.slice(0,2),16),cg=parseInt(hex.slice(2,4),16),cb=parseInt(hex.slice(4,6),16);
+  var colAlpha=function(a){return 'rgba('+cr+','+cg+','+cb+','+a+')';};
+  var bc=gc('t4combo');
+  bc.setOption({backgroundColor:'transparent',
+    grid:{left:54,right:54,top:24,bottom:60},
+    tooltip:{trigger:'axis',formatter:function(params){
+      var wi=params[0].dataIndex;
+      return '<b>'+WL[wi]+'</b><br>曝光: '+exps[wi]+'M  笔记量: '+counts[wi]+'条<br>曝光SOV: '+rates[wi]+'%';
+    }},
+    legend:{bottom:0,textStyle:{color:'#8892b0',fontSize:10}},
+    xAxis:{type:'category',data:WL,axisLabel:{color:'#6b7280',fontSize:10,rotate:35},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    yAxis:[
+      {type:'value',name:'曝光(M)',nameTextStyle:{color:'#6b7280',fontSize:9},
+       axisLabel:{color:'#6b7280',fontSize:10},splitLine:{lineStyle:{color:'#1e2438'}}},
+      {type:'value',name:'SOV%',nameTextStyle:{color:col,fontSize:9},
+       axisLabel:{color:col,fontSize:10,formatter:function(v){return v+'%';}},
+       splitLine:{show:false}}
+    ],
+    series:[
+      {name:'曝光M',type:'bar',barMaxWidth:28,yAxisIndex:0,
+        data:exps.map(function(v){
+          return {value:v,itemStyle:{color:v===maxE?colAlpha(1):colAlpha(0.5),borderRadius:[3,3,0,0]}};
+        }),
+        markPoint:{data:[{type:'max',label:{color:'#fff',fontSize:10}}],itemStyle:{color:col}}},
+      {name:'SOV%',type:'line',yAxisIndex:1,data:rates,
+        lineStyle:{color:'#fbbf24',width:2.5},itemStyle:{color:'#fbbf24'},
+        areaStyle:{color:'rgba(251,191,36,.08)'},symbol:'circle',symbolSize:6,
+        markLine:{data:[{type:'average'}],lineStyle:{color:'rgba(251,191,36,.5)',type:'dashed'},
+          label:{formatter:'均值 {c}%',color:'#fbbf24'}}}
+    ]},true);
+
+  // 代表笔记
+  var cn=D.core_notes||{};
+  var notes=cn[e]||D.surprise_notes||[];
+  document.getElementById('t4notes').innerHTML=notes.length===0?
+    '<div style="color:#6b7280;font-size:12px;padding:12px">暂无代表笔记数据</div>':
+    notes.map(function(n){
+      return '<div class="note-card"><img class="ni" src="'+(n.image_url||'')+'" onerror="this.style.display=\'none\'"/>'+
+        '<div class="nb"><div class="nt">'+(n.text||'').slice(0,120)+'</div>'+
+        '<div class="nm"><span class="ne">曝光 '+fmt(n.exposure||0)+'</span>'+
+        '<span>'+(n.week||'').slice(0,7)+'</span>'+
+        '<a class="nk" href="'+(n.note_url||'#')+'" target="_blank">→ 原文</a></div></div></div>';
+    }).join('');
+}
+var _t4TabsInited=false;
+function renderT4(){
+  if(!_t4TabsInited){initT4Tabs();_t4TabsInited=true;}
+  t4Render();
+}
+
+window.addEventListener('resize',function(){
+  var _resizeIds=['t1barExp','t1barCnt','t1week','t2line','t2heat','t3heatmap','t3tgi','t4combo'];
+  if(D.hzh)_resizeIds.push('t5barExp','t5barCnt','t5diff','t5attrBar','t5attrAvg');
+  _resizeIds.forEach(function(id){
+    var el=document.getElementById(id);if(el){var c=echarts.getInstanceByDom(el);if(c)c.resize();}
+  });
+});
+(function(){
+})();
+initStats();
+// ── Tab5: 高转化笔记情绪排行 ──
+function renderT5(){
+  var H=D.hzh;
+  if(!H){document.getElementById('t5').innerHTML='<div style="color:#6b7280;padding:40px;text-align:center">暂无高转化笔记数据</div>';return;}
+  var HDIST=H.emotion_dist||{};
+  var HCNTS=H.emotion_counts||{};
+  var HEMOTS=H.top_emotions||Object.keys(HDIST);
+  var HORDER=H.emotion_order||{};
+  var HAVG=H.emotion_avg_order||{};
+  var ATTRRANK=H.attr_ranking||[];
+  var ATTRORD=H.attr_order||{};
+  var ATTRCNT=H.attr_cnt||{};
+  var ATTRAVG=H.attr_avg_order||{};
+  var totalOrder=H.total_order_amount||0;
+
+  // 顶部指标
+  var topEmo=HEMOTS[0]||'';
+  var topAttr=ATTRRANK[0]||'';
+  document.getElementById('t5metrics').innerHTML=
+    '<div class="mc"><div class="mv">'+H.total_notes+'</div><div class="ml">高转化笔记总量</div></div>'+
+    '<div class="mc"><div class="mv" style="color:#fbbf24">¥'+(totalOrder/10000).toFixed(1)+'万</div><div class="ml">可归因总成交金额</div></div>'+
+    '<div class="mc"><div class="mv" style="color:#4ade80">'+(topEmo||'-')+'</div><div class="ml">成交金额 #1 情绪</div></div>'+
+    '<div class="mc"><div class="mv" style="color:#e879f9" style="font-size:14px">'+(topAttr||'-')+'</div><div class="ml">成交金额 #1 功能属性</div></div>';
+
+  // 情绪排行（按成交金额）
+  function makeEmoBar(chartId){
+    var ch=gc(chartId);
+    var es=HEMOTS.slice().sort(function(a,b){return (HORDER[b]||0)-(HORDER[a]||0);});
+    es=es.slice(0,15);
+    var vals=es.map(function(e){return +(HORDER[e]||0);});
+    ch.setOption({backgroundColor:'transparent',grid:{left:86,right:90,top:10,bottom:10},
+      xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,
+        formatter:function(v){return v>=10000?(v/10000).toFixed(1)+'万':v;}},
+        splitLine:{lineStyle:{color:'#1e2438'}}},
+      yAxis:{type:'category',data:es,inverse:true,
+        axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+      tooltip:{trigger:'axis',formatter:function(p){
+        var e=p[0].name;
+        return e+'<br>总成交: <b>¥'+(HORDER[e]||0).toLocaleString()+'</b>'+
+               '<br>均值: <b>¥'+(HAVG[e]||0).toLocaleString()+'</b>'+
+               '<br>笔记数: <b>'+(HCNTS[e]||0)+'</b>条';
+      }},
+      series:[{type:'bar',barMaxWidth:22,
+        data:es.map(function(e,i){
+          var isCore=CORE_EMOTIONS.indexOf(e)>=0;
+          var col=isCore?(CORE_COLORS[e]||'#6366f1'):(isPos(e)?'rgba(74,222,128,.5)':'rgba(248,113,113,.45)');
+          return {value:vals[i],itemStyle:{color:col,borderRadius:[0,3,3,0]}};
+        }),
+        label:{show:true,position:'right',color:'#94a3b8',fontSize:10,
+          formatter:function(p){var v=p.value;return v>=10000?(v/10000).toFixed(1)+'万':'¥'+v;}}
+      }]},true);
+  }
+  makeEmoBar('t5barExp');
+
+  // 情绪均值 ranking（转化效率）
+  function makeEmoAvgBar(chartId){
+    var ch=gc(chartId);
+    var es=HEMOTS.slice().filter(function(e){return (HCNTS[e]||0)>=2;});
+    es=es.sort(function(a,b){return (HAVG[b]||0)-(HAVG[a]||0);}).slice(0,12);
+    var vals=es.map(function(e){return +(HAVG[e]||0);});
+    ch.setOption({backgroundColor:'transparent',grid:{left:86,right:90,top:10,bottom:10},
+      xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,
+        formatter:function(v){return v>=10000?(v/10000).toFixed(1)+'万':v;}},
+        splitLine:{lineStyle:{color:'#1e2438'}}},
+      yAxis:{type:'category',data:es,inverse:true,
+        axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+      tooltip:{trigger:'axis',formatter:function(p){
+        var e=p[0].name;
+        return e+'<br>单篇均值: <b>¥'+(HAVG[e]||0).toLocaleString()+'</b>'+
+               '<br>笔记数: <b>'+(HCNTS[e]||0)+'</b>条';
+      }},
+      series:[{type:'bar',barMaxWidth:22,
+        data:es.map(function(e,i){
+          var col=isPos(e)?'rgba(251,191,36,.7)':'rgba(248,113,113,.45)';
+          return {value:vals[i],itemStyle:{color:col,borderRadius:[0,3,3,0]}};
+        }),
+        label:{show:true,position:'right',color:'#94a3b8',fontSize:10,
+          formatter:function(p){var v=p.value;return v>=10000?(v/10000).toFixed(1)+'万':'¥'+v;}}
+      }]},true);
+  }
+  makeEmoAvgBar('t5barCnt');
+
+  // 高转化 vs 全量 SOV 对比（情绪维度）
+  var ch=gc('t5diff');
+  var DIST_ALL=D.overview.emotion_dist||{};
+  var top12=HEMOTS.slice(0,12);
+  var diffs=top12.map(function(e){return +((HDIST[e]||0)-(DIST_ALL[e]||0)).toFixed(1);});
+  ch.setOption({backgroundColor:'transparent',grid:{left:72,right:70,top:10,bottom:10},
+    xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,formatter:function(v){return v+'pp';}},
+      splitLine:{lineStyle:{color:'#1e2438'}}},
+    yAxis:{type:'category',data:top12,inverse:true,
+      axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    tooltip:{trigger:'axis',formatter:function(p){
+      var e=p[0].name;return e+'<br>高转化SOV: '+(HDIST[e]||0).toFixed(1)+'%<br>全量SOV: '+(DIST_ALL[e]||0).toFixed(1)+'%<br>差值: '+p[0].value+'pp';
+    }},
+    series:[{type:'bar',barMaxWidth:22,
+      data:top12.map(function(e,i){
+        var v=diffs[i];
+        return {value:v,itemStyle:{color:v>=0?'rgba(74,222,128,.75)':'rgba(248,113,113,.65)',borderRadius:[0,3,3,0]}};
+      }),
+      label:{show:true,color:'#94a3b8',fontSize:10,
+        formatter:function(p){return (p.value>=0?'+':'')+p.value+'pp';}}
+    }]},true);
+
+  // 功能属性成交金额 ranking
+  if(ATTRRANK.length>0){
+    var ch2=gc('t5attrBar');
+    var attrs=ATTRRANK.slice(0,12);
+    var attrVals=attrs.map(function(a){return +(ATTRORD[a]||0);});
+    ch2.setOption({backgroundColor:'transparent',grid:{left:100,right:90,top:10,bottom:10},
+      xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,
+        formatter:function(v){return v>=10000?(v/10000).toFixed(1)+'万':v;}},
+        splitLine:{lineStyle:{color:'#1e2438'}}},
+      yAxis:{type:'category',data:attrs,inverse:true,
+        axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+      tooltip:{trigger:'axis',formatter:function(p){
+        var a=p[0].name;
+        return a+'<br>总成交: <b>¥'+(ATTRORD[a]||0).toLocaleString()+'</b>'+
+               '<br>均值: <b>¥'+(ATTRAVG[a]||0).toLocaleString()+'</b>'+
+               '<br>笔记数: <b>'+(ATTRCNT[a]||0)+'</b>条';
+      }},
+      series:[{type:'bar',barMaxWidth:22,
+        data:attrs.map(function(a,i){
+          var cols=['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#7c3aed','#4f46e5','#818cf8','#4338ca','#6d28d9','#7c3aed','#5b21b6','#4c1d95'];
+          return {value:attrVals[i],itemStyle:{color:cols[i%cols.length],borderRadius:[0,3,3,0]}};
+        }),
+        label:{show:true,position:'right',color:'#94a3b8',fontSize:10,
+          formatter:function(p){var v=p.value;return v>=10000?(v/10000).toFixed(1)+'万':'¥'+v;}}
+      }]},true);
+
+    // 功能属性均值 ranking
+    var ch3=gc('t5attrAvg');
+    var attrsAvg=ATTRRANK.slice().filter(function(a){return (ATTRCNT[a]||0)>=2;});
+    attrsAvg=attrsAvg.sort(function(a,b){return (ATTRAVG[b]||0)-(ATTRAVG[a]||0);}).slice(0,10);
+    ch3.setOption({backgroundColor:'transparent',grid:{left:100,right:90,top:10,bottom:10},
+      xAxis:{type:'value',axisLabel:{color:'#6b7280',fontSize:10,
+        formatter:function(v){return v>=10000?(v/10000).toFixed(1)+'万':v;}},
+        splitLine:{lineStyle:{color:'#1e2438'}}},
+      yAxis:{type:'category',data:attrsAvg,inverse:true,
+        axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+      tooltip:{trigger:'axis',formatter:function(p){
+        var a=p[0].name;
+        return a+'<br>单篇均值: <b>¥'+(ATTRAVG[a]||0).toLocaleString()+'</b>'+
+               '<br>笔记数: <b>'+(ATTRCNT[a]||0)+'</b>条';
+      }},
+      series:[{type:'bar',barMaxWidth:22,
+        data:attrsAvg.map(function(a,i){
+          return {value:+(ATTRAVG[a]||0),itemStyle:{color:'rgba(251,191,36,.7)',borderRadius:[0,3,3,0]}};
+        }),
+        label:{show:true,position:'right',color:'#94a3b8',fontSize:10,
+          formatter:function(p){var v=p.value;return v>=10000?(v/10000).toFixed(1)+'万':'¥'+v;}}
+      }]},true);
+  }
+}
+
+// 功能性属性定义（来自 Attributes v4）
+var FUNC_DEF = {
+  'DIY可玩性': '可作为食材用于DIY和其他食品搭配；用户自主创作的乐趣，有自主发挥空间',
+  '口感创新度': '新口味/新质地/新形态的创新体验（爆珠、拉丝、脆皮等）；强调新奇创新性',
+  '健康轻负担': '对低糖、低脂、无乳糖、高蛋白等健康概念的感知；0糖0脂0卡/轻盈无负担',
+  '价格感知': '对产品价格与价值的匹配度评估；值了/性价比高/不值这个价；双向判断',
+  '口感质地体验': '食物在口腔中的物理形态（脆/软/韧/爆浆），直接关联解压感或治愈感等感受',
+  '风味辨识度': '对乳品的气味与味道特征感知：奶香/果香/发酵香/花香；气味和味道特征明显可辨识',
+  '口感顺滑度': '入口时乳品在口腔的质地感知：顺滑/绵密/浓稠/稀薄；顺滑/丝滑/绵柔',
+  '场景适配度': '食品与其他食物搭配，或在特定物理环境下的适用性；早餐搭配/看剧必备/运动后补充',
+  '成分/配料纯净度': '对原料来源纯正度及配料表添加剂多少的感知与信任；配料表干净/0添加剂/纯粹自然',
+  '佐餐搭配性': '与特定食物搭配的适配感；配烧烤绝了/下酒菜首选/餐酒搭配/佐餐神器',
+  '包装颜值': '包装的设计，关联分享欲、社交体面或强迫症的掌控感；好看/颜值高/高级感/设计感',
+  '即食便捷性': '从打开到吃进嘴里所需的步骤和时间；开盖即饮/免冲即食/懒人福音',
+  '低GI/血糖友好': '低升糖指数配方，适合控糖人群；低GI/不升血糖/控糖场景',
+  '高品质': '对原料/工艺/品控的高标准感知；匠心/真材实料/精品；非情绪描述',
+  '产地溯源背书': '对特定食材来源地的背书；有具体地名背书；地域背书带来的品质联想',
+  '适合送礼': '包装礼盒的礼赠适配性；送礼体面感；礼盒/定制款/适合送人',
+  '稀缺收藏价值': '产品系列/季节限定/联名带来的稀缺性与收藏价值；限量款/季节限定',
+  '多规格选择': '容量/规格与饮用场景的匹配感；大瓶/小瓶/一人份/分享装',
+  '易于消化': '进食后身体产生的真实生理反应；不胀气/好消化/吃完不口干',
+  '饮后舒适度': '饮用后整体身体感受；不上头/醒得快/第二天没事；多见于酒饮',
+  '骨骼健康支持': '高钙+维生素D组合促进骨骼健康；补钙/骨质疏松/骨头硬',
+  '免疫力提升': '乳铁蛋白/免疫球蛋白等成分增强免疫力；免疫增强/少生病/抵抗力',
+  '肠道健康调节': '通过益生菌/益生元组合调节肠道功能；通便/促消化/肠动力',
+};
+
+// ── Tab6: 功能性属性（Functional Attributes v3）──
+function renderT6(){
+  var FA=D.functional_attrs;
+  if(!FA||!FA.top_attrs||!FA.top_attrs.length){
+    document.getElementById('t6').innerHTML='<div style="color:#6b7280;padding:40px;text-align:center">暂无功能性属性数据（请用 v5 版本重新打标）</div>';
+    return;
+  }
+  var attrs=FA.top_attrs||[];
+  var dist=FA.attr_dist||{};
+  var distExp=FA.attr_dist_exp||{};
+  var cnt=FA.attr_count||{};
+  var matrix=FA.attr_emotion_matrix||{};
+  var overTime=FA.attr_over_time||{};
+  var weeks=D.meta.weeks||[];
+
+  // T6 Bar — 功能性属性命中率
+  var ch6b=gc('t6bar');
+  var sortedAttrs=attrs.slice().sort(function(a,b){return (dist[b]||0)-(dist[a]||0);});
+  // xAxis 最大值固定为最大数据值的1.25倍，确保标签不超出图表右边界
+  var maxDist=Math.max.apply(null,sortedAttrs.map(function(a){return dist[a]||0;}));
+  ch6b.setOption({backgroundColor:'transparent',
+    grid:{left:120,right:60,top:20,bottom:20,containLabel:false},
+    xAxis:{type:'value',max:Math.ceil(maxDist*1.3),
+      axisLabel:{color:'#6b7280',fontSize:10,formatter:function(v){return v+'%';}},
+      splitLine:{lineStyle:{color:'#1e2438'}}},
+    yAxis:{type:'category',data:sortedAttrs,inverse:true,
+      axisLabel:{color:'#e2e8f0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    tooltip:{trigger:'axis',formatter:function(p){
+      var a=p[0].name;
+      return a+'<br>命中率: <b>'+(dist[a]||0).toFixed(1)+'%</b><br>笔记数: <b>'+(cnt[a]||0)+'</b>条<br>曝光SOV: <b>'+(distExp[a]||0).toFixed(2)+'%</b>';
+    }},
+    series:[{type:'bar',barMaxWidth:20,
+      data:sortedAttrs.map(function(a,i){
+        var hue=200+Math.round(i*11)%120;
+        return {value:+(dist[a]||0).toFixed(1),
+          itemStyle:{color:'hsl('+hue+',60%,55%)',borderRadius:[0,3,3,0]}};
+      }),
+      label:{show:true,position:'insideRight',color:'#fff',fontSize:10,fontWeight:600,
+        formatter:function(p){return p.value.toFixed(1)+'%';}}
+    }]},true);
+
+  // T6 点击 Bar → 展示定义 + 代表笔记
+  var atTopNotes = (D.functional_attrs && D.functional_attrs.attr_top_notes) || {};
+  ch6b.on('click', function(params){
+    var fa = params.name;
+    var panel = document.getElementById('t6detail');
+    if(!panel) return;
+    var col = 'hsl('+(200+Math.round(sortedAttrs.indexOf(fa)*11)%120)+',60%,55%)';
+    var html = '<div style="border-left:3px solid '+col+';padding-left:12px;margin-bottom:12px">'
+      +'<div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:6px">'+fa+'</div>';
+    var def = FUNC_DEF[fa];
+    if(def){
+      html += '<div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:10px">'
+        +'<span style="color:#6b7280;font-size:11px;font-weight:600;margin-right:6px">定义</span>'
+        +def+'</div>';
+    }
+    var notes = atTopNotes[fa] || [];
+    if(notes.length){
+      html += '<div style="color:#6b7280;font-size:11px;margin-bottom:6px">代表笔记（按曝光排序）</div>';
+      notes.forEach(function(n){
+        var expW = n.exposure >= 10000 ? Math.round(n.exposure/10000)+'万' : n.exposure;
+        html += '<div style="display:flex;align-items:flex-start;margin-bottom:10px;gap:10px">';
+        if(n.image_url){
+          html += '<a href="'+(n.note_url||'#')+'" target="_blank">'
+            +'<img src="'+n.image_url+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0" onerror="this.style.display=\'none\'">'
+            +'</a>';
+        }
+        html += '<div style="flex:1;min-width:0">'
+          +'<div style="font-size:11px;color:#cbd5e1;line-height:1.5;margin-bottom:4px">'
+          +n.text.slice(0,70)+(n.text.length>70?'…':'')+'</div>'
+          +'<div style="font-size:11px;color:#6b7280">'
+          +'曝光 <span style="color:'+col+';font-weight:600">'+expW+'</span>'
+          +'  |  情绪 <span style="color:#94a3b8">'+n.emotion+'</span>'
+          +(n.note_url ? '  |  <a href="'+n.note_url+'" target="_blank" style="color:#3b82f6;text-decoration:none">查看笔记↗</a>' : '')
+          +'</div></div></div>';
+      });
+    }
+    html += '</div>';
+    panel.innerHTML = html;
+    // 先显示面板，再让 bar chart resize 到剩余宽度
+    var wasHidden = panel.style.display === 'none';
+    panel.style.display = 'block';
+    if(wasHidden){
+      // 给浏览器一帧时间重排，再 resize echarts
+      setTimeout(function(){ ch6b.resize(); }, 50);
+    }
+  });
+
+  // T6 Heat — 功能性属性 × 情绪 热力图
+  var ch6h=gc('t6heat');
+  var faList=attrs.slice(0,15);
+  var emList=Object.keys(D.overview.emotion_dist||{}).slice(0,10);
+  var heatData=[];
+  faList.forEach(function(fa,fi){
+    emList.forEach(function(em,ei){
+      heatData.push([fi,ei,(matrix[fa]||{})[em]||0]);
+    });
+  });
+  var maxVal=Math.max.apply(null,heatData.map(function(d){return d[2];}));
+  ch6h.setOption({backgroundColor:'transparent',
+    grid:{left:130,right:20,top:60,bottom:20},
+    xAxis:{type:'category',data:emList,
+      axisLabel:{color:'#e2e8f0',fontSize:10,rotate:30},
+      axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    yAxis:{type:'category',data:faList,inverse:false,
+      axisLabel:{color:'#e2e8f0',fontSize:10},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    visualMap:{min:0,max:maxVal||1,calculable:true,
+      orient:'horizontal',left:'center',top:0,
+      inRange:{color:['#1e2438','#3b82f6','#f59e0b']},
+      textStyle:{color:'#8892b0'}},
+    tooltip:{formatter:function(p){
+      return faList[p.data[1]]+'<br>'+emList[p.data[0]]+'<br>笔记数: <b>'+p.data[2]+'</b>';
+    }},
+    series:[{type:'heatmap',data:heatData,
+      label:{show:true,formatter:function(p){return p.data[2]>0?p.data[2]:'';},
+        color:'#fff',fontSize:9},
+      emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'}}}]
+  },true);
+
+  // T6 Line — Top5属性 Over Time
+  var ch6l=gc('t6line');
+  var top5fa=sortedAttrs.slice(0,5);
+  ch6l.setOption({backgroundColor:'transparent',
+    grid:{left:40,right:20,top:30,bottom:40},
+    xAxis:{type:'category',data:weeks,
+      axisLabel:{color:'#6b7280',fontSize:10,rotate:30},
+      axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    yAxis:{type:'value',
+      axisLabel:{color:'#6b7280',fontSize:10,formatter:function(v){return v+'%';}},
+      splitLine:{lineStyle:{color:'#1e2438'}}},
+    legend:{top:0,textStyle:{color:'#8892b0'},itemWidth:10,itemHeight:3},
+    tooltip:{trigger:'axis'},
+    series:top5fa.map(function(fa,i){
+      var hue=200+i*24;
+      var rates=(overTime[fa]||{}).rates||weeks.map(function(){return 0;});
+      return {name:fa,type:'line',smooth:true,
+        symbol:'none',
+        lineStyle:{width:2,color:'hsl('+hue+',65%,60%)'},
+        data:rates};
+    })},true);
+}
+
+window.addEventListener('load',function(){
+  // load 事件后 layout 已完成，直接渲染
+  renderT1();
+});
+
+// Tab7: brand diagnosis - mode toggle Top5 Emotion / Top5 Func Attr
+var _t7Inited=false,_t7Radar=null,_t7TGI=null,_t7SelBrands=[],_t7Mode='emotion';
+var BRAND_COLORS7=['#4ade80','#60a5fa','#f472b6','#fbbf24','#a78bfa','#34d399','#fb923c','#e879f9'];
+function renderT7(){
+  if(_t7Inited)return;_t7Inited=true;
+  var brands=Object.keys(D.sov_matrix||{});
+  var list=document.getElementById('t7brandlist'); list.innerHTML='';
+  brands.forEach(function(b,i){
+    var item=document.createElement('div');
+    item.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;border:1.5px solid #2d3a5a;transition:all .15s;';
+    var cnt=Object.values(D.sov_matrix[b]||{}).reduce(function(a,c){return a+c;},0).toFixed(1);
+    item.innerHTML='<div style="display:flex;align-items:center;gap:8px"><span class="t7dot" style="width:10px;height:10px;border-radius:50%;background:#4b5563;flex-shrink:0"></span><span style="font-size:13px;color:#e2e8f0">'+b+'</span></div><span style="font-size:11px;color:#6b7280">'+cnt+'%</span>';
+    item.onclick=function(){t7ToggleBrand(b,item,i);};
+    list.appendChild(item);
+    if(i<2)t7ToggleBrand(b,item,i);
+  });
+  document.getElementById('t7modeEmo').onclick=function(){_t7Mode='emotion';t7SyncToggle();t7Render();};
+  document.getElementById('t7modeFunc').onclick=function(){_t7Mode='func';t7SyncToggle();t7Render();};
+  t7SyncToggle();t7Render();
+}
+function t7SyncToggle(){
+  var emo=document.getElementById('t7modeEmo'),func=document.getElementById('t7modeFunc');
+  if(_t7Mode==='emotion'){
+    emo.style.background='#3b4a70';emo.style.color='#fff';emo.style.borderColor='#60a5fa';
+    func.style.background='#1a2035';func.style.color='#8892b0';func.style.borderColor='#2d3a5a';
+  } else {
+    func.style.background='#3b4a70';func.style.color='#fff';func.style.borderColor='#60a5fa';
+    emo.style.background='#1a2035';emo.style.color='#8892b0';emo.style.borderColor='#2d3a5a';
+  }
+  var label=_t7Mode==='emotion'?'Top5 情绪':'Top5 功能属性';
+  var r=document.getElementById('t7radartitle'),t=document.getElementById('t7tgititle');
+  if(r)r.textContent='品牌 '+label+' 雷达图';
+  if(t)t.textContent=label+' TGI（行业=100）';
+}
+function t7ToggleBrand(b,el,i){
+  var idx=_t7SelBrands.indexOf(b);
+  if(idx>=0){if(_t7SelBrands.length<=1)return;_t7SelBrands.splice(idx,1);el.style.background='transparent';el.querySelector('.t7dot').style.background='#4b5563';el.style.borderColor='#2d3a5a';}
+  else{if(_t7SelBrands.length>=4)return;_t7SelBrands.push(b);var ci=(_t7SelBrands.length-1)%BRAND_COLORS7.length;el.style.background='rgba(255,255,255,0.06)';el.querySelector('.t7dot').style.background=BRAND_COLORS7[ci];el.style.borderColor=BRAND_COLORS7[ci];}
+  t7Render();
+}
+function t7GetCfg(){
+  if(_t7Mode==='emotion'){
+    var sm=D.sov_matrix||{},tot={};
+    _t7SelBrands.forEach(function(b){Object.entries(sm[b]||{}).forEach(function(kv){tot[kv[0]]=(tot[kv[0]]||0)+kv[1];});});
+    var dims=Object.entries(tot).sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(x){return x[0];});
+    return {dims:dims,allBrands:Object.keys(sm),getVal:function(b,d){return sm[b]&&sm[b][d]?sm[b][d]:0;},max:50};
+  } else {
+    var bt=(D.functional_attrs||{}).brand_top||{},tot={};
+    _t7SelBrands.forEach(function(b){Object.entries(bt[b]||{}).forEach(function(kv){tot[kv[0]]=(tot[kv[0]]||0)+kv[1];});});
+    var dims=Object.entries(tot).sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(x){return x[0];});
+    return {dims:dims,allBrands:Object.keys(bt),getVal:function(b,d){var bT=Object.values(bt[b]||{}).reduce(function(a,c){return a+c;},0)||1;return bt[b]&&bt[b][d]?bt[b][d]/bT*100:0;},max:50};
+  }
+}
+function t7Render(){
+  var cfg=t7GetCfg();
+  var avg={};
+  cfg.dims.forEach(function(d){var s=0,n=cfg.allBrands.length||1;cfg.allBrands.forEach(function(b){s+=cfg.getVal(b,d);});avg[d]=s/n||0.01;});
+  t7RenderRadar(cfg,avg);t7RenderTGI(cfg,avg);
+}
+function t7RenderRadar(cfg,avg){
+  var dom=document.getElementById('t7radar');if(!dom)return;
+  if(!_t7Radar){_t7Radar=echarts.init(dom);}
+  _t7Radar.setOption({
+    backgroundColor:'transparent',
+    tooltip:{backgroundColor:'#1a2035',borderColor:'#2d3a5a',textStyle:{color:'#e2e8f0'}},
+    legend:{bottom:4,textStyle:{color:'#8892b0'},data:_t7SelBrands,icon:'circle'},
+    radar:{indicator:cfg.dims.map(function(d){return {name:d,max:cfg.max};}),center:['50%','46%'],radius:'60%',
+      name:{color:'#8892b0',fontSize:11},splitLine:{lineStyle:{color:'#1e2438'}},axisLine:{lineStyle:{color:'#2d3a5a'}},
+      splitArea:{areaStyle:{color:['rgba(255,255,255,0.01)','rgba(255,255,255,0.03)']}}},
+    series:_t7SelBrands.map(function(b,i){
+      var ci=i%BRAND_COLORS7.length,vals=cfg.dims.map(function(d){return Math.round(cfg.getVal(b,d)*10)/10;});
+      return {name:b,type:'radar',lineStyle:{color:BRAND_COLORS7[ci],width:2},itemStyle:{color:BRAND_COLORS7[ci]},areaStyle:{color:BRAND_COLORS7[ci],opacity:0.10},data:[{value:vals,name:b}]};
+    })
+  },{notMerge:true});
+}
+function t7RenderTGI(cfg,avg){
+  var dom=document.getElementById('t7tgi');if(!dom)return;
+  if(!_t7TGI){_t7TGI=echarts.init(dom);}
+  _t7TGI.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#1a2035',borderColor:'#2d3a5a',textStyle:{color:'#e2e8f0'},
+      formatter:function(params){var s='<b>TGI (行业=100)</b><br>';params.forEach(function(p){s+=p.marker+p.seriesName+': <b>'+p.value+'</b><br>';});s+='<br><span style="font-size:10px;color:#6b7280">>120 差异优势|<80 内容缺口</span>';return s;}},
+    legend:{top:0,textStyle:{color:'#8892b0'},data:_t7SelBrands},
+    grid:{top:30,bottom:40,left:130,right:70},
+    xAxis:{type:'value',axisLabel:{color:'#8892b0'},splitLine:{lineStyle:{color:'#1e2438'}},min:0,max:function(v){return Math.max(220,v.max+30);}},
+    yAxis:{type:'category',data:cfg.dims,axisLabel:{color:'#8892b0',fontSize:11},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    series:_t7SelBrands.map(function(b,i){
+      var ci=i%BRAND_COLORS7.length;
+      var tgis=cfg.dims.map(function(d){return Math.round(cfg.getVal(b,d)/(avg[d]||0.01)*100);});
+      return {name:b,type:'bar',barGap:'10%',
+        itemStyle:{color:function(params){return tgis[params.dataIndex]>=100?BRAND_COLORS7[ci]:'#ef4444';}},
+        label:{show:true,position:'right',color:'#e2e8f0',fontSize:11,formatter:function(p){return p.value;}},
+        data:tgis};
+    })
+  },{notMerge:true});
+  var tip=document.getElementById('t7tgitip');if(tip)tip.style.display='block';
+}
+
+// Tab8: Brand trend - mode toggle emotion / func attr
+var _t8Chart=null,_t8Inited=false,_t8SelBrands8=[],_t8Mode8='emotion',_t8SelDim='';
+var BRAND_COLORS8=['#4ade80','#fbbf24','#f87171','#60a5fa','#a78bfa','#34d399'];
+function renderT8(){
+  if(_t8Inited)return;_t8Inited=true;
+  var brands=Object.keys(D.sov_matrix||{});
+  var chipCon=document.getElementById('t8chips');chipCon.innerHTML='';
+  brands.forEach(function(b,i){
+    var btn=document.createElement('button'),ci=i%BRAND_COLORS8.length;
+    btn.textContent=b;
+    btn.style.cssText='padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid '+BRAND_COLORS8[ci]+';background:'+BRAND_COLORS8[ci]+'22;color:'+BRAND_COLORS8[ci]+';margin:3px;transition:all .15s;';
+    btn.onclick=function(){t8ToggleBrand8(b,btn,i);t8RenderChart();};
+    chipCon.appendChild(btn);_t8SelBrands8.push(b);
+  });
+  document.getElementById('t8modeEmo').onclick=function(){_t8Mode8='emotion';t8SyncMode();t8PopDims();t8RenderChart();};
+  document.getElementById('t8modeFunc').onclick=function(){_t8Mode8='func';t8SyncMode();t8PopDims();t8RenderChart();};
+  document.getElementById('t8dimsel').onchange=function(){_t8SelDim=this.value;t8RenderChart();};
+  document.getElementById('t8rangesel').onchange=function(){t8RenderChart();};
+  t8SyncMode();t8PopDims();t8RenderChart();
+}
+function t8SyncMode(){
+  var emo=document.getElementById('t8modeEmo'),func=document.getElementById('t8modeFunc');
+  if(_t8Mode8==='emotion'){
+    emo.style.background='#3b4a70';emo.style.color='#fff';emo.style.borderColor='#60a5fa';
+    func.style.background='#1a2035';func.style.color='#8892b0';func.style.borderColor='#2d3a5a';
+  } else {
+    func.style.background='#3b4a70';func.style.color='#fff';func.style.borderColor='#60a5fa';
+    emo.style.background='#1a2035';emo.style.color='#8892b0';emo.style.borderColor='#2d3a5a';
+  }
+  var lbl=document.getElementById('t8dimlabel');
+  if(lbl)lbl.textContent='选'+(_t8Mode8==='emotion'?'情绪：':'功能属性：');
+}
+function t8PopDims(){
+  var sel=document.getElementById('t8dimsel');sel.innerHTML='';
+  var dims=[],tot={};
+  if(_t8Mode8==='emotion'){
+    var sm=D.sov_matrix||{};
+    Object.values(sm).forEach(function(m){Object.entries(m).forEach(function(kv){tot[kv[0]]=(tot[kv[0]]||0)+kv[1];});});
+    dims=Object.entries(tot).sort(function(a,b){return b[1]-a[1];}).slice(0,10).map(function(x){return x[0];});
+  } else {
+    var bt=(D.functional_attrs||{}).brand_top||{};
+    Object.values(bt).forEach(function(m){Object.entries(m).forEach(function(kv){tot[kv[0]]=(tot[kv[0]]||0)+kv[1];});});
+    dims=Object.entries(tot).sort(function(a,b){return b[1]-a[1];}).map(function(x){return x[0];});
+  }
+  dims.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  _t8SelDim=dims[0]||'';
+}
+function t8ToggleBrand8(b,btn,i){
+  var idx=_t8SelBrands8.indexOf(b),ci=i%BRAND_COLORS8.length;
+  if(idx>=0){if(_t8SelBrands8.length<=1)return;_t8SelBrands8.splice(idx,1);btn.style.background='transparent';btn.style.opacity='0.4';}
+  else{_t8SelBrands8.push(b);btn.style.background=BRAND_COLORS8[ci]+'22';btn.style.opacity='1';}
+}
+function t8RenderChart(){
+  var bwee=D.brand_week_emotion_exp||{},weekSet={};
+  _t8SelBrands8.forEach(function(b){Object.keys(bwee[b]||{}).forEach(function(w){weekSet[w]=1;});});
+  var allWeeks=Object.keys(weekSet).sort();
+  var rv=document.getElementById('t8rangesel').value;
+  if(rv!=='all'&&allWeeks.length>parseInt(rv))allWeeks=allWeeks.slice(-parseInt(rv));
+  var labels=allWeeks.map(function(w,i){return 'W'+(i+1)+'\n'+w;});
+  var bfw=(D.functional_attrs||{}).brand_fa_week_exp||{};
+  var allBO=Object.keys(D.sov_matrix||{});
+  var series=_t8SelBrands8.map(function(b){
+    var ci=allBO.indexOf(b)%BRAND_COLORS8.length;
+    var data=allWeeks.map(function(w){
+      if(_t8Mode8==='emotion'){
+        var v=(bwee[b]&&bwee[b][w]&&bwee[b][w][_t8SelDim])||0;
+        var tot=Object.values((bwee[b]&&bwee[b][w])||{}).reduce(function(a,c){return a+c;},0)||1;
+        return v>0?Math.round(v/tot*10000)/100:null;
+      } else {
+        var v=(bfw[b]&&bfw[b][_t8SelDim]&&bfw[b][_t8SelDim][w])||0;
+        var tot=Object.values((bwee[b]&&bwee[b][w])||{}).reduce(function(a,c){return a+c;},0)||1;
+        return v>0?Math.round(v/tot*10000)/100:null;
+      }
+    });
+    return {name:b,type:'line',smooth:true,symbol:'circle',symbolSize:5,lineStyle:{width:2.5},itemStyle:{color:BRAND_COLORS8[ci]},data:data,connectNulls:false};
+  });
+  var dom=document.getElementById('t8chart');if(!dom)return;
+  if(!_t8Chart){_t8Chart=echarts.init(dom);}
+  _t8Chart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'axis',backgroundColor:'#1a2035',borderColor:'#2d3a5a',textStyle:{color:'#e2e8f0'},
+      formatter:function(params){var wk=allWeeks[params[0]&&params[0].dataIndex]||'';var s='<b>'+wk+'</b><br>';params.forEach(function(p){if(p.value!=null)s+=p.marker+p.seriesName+': <b>'+p.value+'%</b><br>';});return s;}},
+    legend:{top:8,textStyle:{color:'#8892b0'}},
+    grid:{top:50,bottom:60,left:55,right:20},
+    xAxis:{type:'category',data:allWeeks,axisLabel:{color:'#8892b0',fontSize:10},axisLine:{lineStyle:{color:'#2d3a5a'}}},
+    yAxis:{type:'value',name:'SOV %',axisLabel:{color:'#8892b0',formatter:'{value}%'},splitLine:{lineStyle:{color:'#1e2438'}}},
+    series:series
+  },{notMerge:true});
+}
+</script></body></html>
